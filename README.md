@@ -1,5 +1,9 @@
-# ![logo](./logo_64.png) Iroha Playground
+<img height="64px" src="logo.svg" alt="Iroha Playground" />
 
+# Iroha Playground
+
+Hyperldeger Iroha test network setup as a Playground. 
+See: [hyperledger/iroha](https://github.com/hyperledger/iroha)
 
 ## Test network
 
