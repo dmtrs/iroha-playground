@@ -1,4 +1,4 @@
-# ![logo](./logo.svg) Iroha Playground
+# ![logo](./logo_64.png) Iroha Playground
 
 
 ## Test network
