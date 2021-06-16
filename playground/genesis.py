@@ -1,7 +1,9 @@
 import typing
 import enum
-from dataclasses import dataclass, field
+import strawberry
+import dataclasses
 
+@strawberry.enum
 class DefaultAdminPermissions(enum.Enum):
     can_add_peer="can_add_peer"
     can_add_signatory="can_add_signatory"
@@ -20,6 +22,7 @@ class DefaultAdminPermissions(enum.Enum):
     can_remove_signatory="can_remove_signatory"
     can_set_quorum="can_set_quorum"
 
+@strawberry.enum
 class DefaultUserPermissions(enum.Enum):
     can_add_signatory="can_add_signatory"
     can_get_my_acc_ast="can_get_my_acc_ast"
@@ -39,114 +42,158 @@ class DefaultUserPermissions(enum.Enum):
     can_set_quorum="can_set_quorum"
     can_transfer="can_transfer"
 
+@strawberry.enum
 class DefaultMoneyCreatorPermissions(enum.Enum):
     can_add_asset_qty="can_add_asset_qty"
     can_create_asset="can_create_asset"
     can_receive="can_receive"
     can_transfer="can_transfer"
 
-@dataclass
+@strawberry.type
+class AddPeer:
+    address: str
+    peerKey: str
+
+@strawberry.type
+class AddPeerCommand:
+    addPeer: AddPeer
+
+@strawberry.type
+class CreateRole:
+    roleName: str
+    permissions: typing.List[DefaultAdminPermissions]
+
+@strawberry.type
+class CreateRoleCommand:
+    createRole: CreateRole
+
+@strawberry.type
 class ReducedPayload:
-    commands: typing.List[typing.Dict[str, typing.Dict[str, typing.Any]]]
+    commands: typing.List[typing.Union[
+        AddPeerCommand,
+        CreateRoleCommand,
+    ]]
     quorum: int = 1
 
-@dataclass
+@strawberry.type
 class TransactionPayload:
     reducedPayload: ReducedPayload
 
-@dataclass
+@strawberry.type
 class Transaction:
     payload: TransactionPayload
 
-@dataclass
+@strawberry.type
 class BlockPayload:
-    transactions: typing.List[Transaction] = field(default_factory=list)
+    transactions: typing.List[Transaction] = dataclasses.field(default_factory=list)
     txNumber: int = 0
     height: str = "0"
     prevBlockHash: str = ''
 
-@dataclass
+@strawberry.type
 class Block:
     payload: BlockPayload
 
-@dataclass
+@strawberry.type
 class GenesisBlock:
+    _id: strawberry.ID
     block_v1: Block
 
-def default_genesis() -> GenesisBlock:
-    commands: typing.List[typing.Dict[str, typing.Dict[str, typing.Any]]] = [
-        {
-            'addPeer': {
-                'peer': {
-                    'address':'127.0.0.1:10001',
-                    'peerKey': 'bddd58404d1315e0eb27902c5d7c8eb0602c16238f005773df406bc191308929'
+@strawberry.type
+class Query:
+    @strawberry.field
+    def default_genesis(self) -> GenesisBlock:
+        commands = [
+            AddPeerCommand(
+                addPeer=AddPeer(
+                    address='127.0.0.1:10001',
+                    peerKey='bddd58404d1315e0eb27902c5d7c8eb0602c16238f005773df406bc191308929',
+                )
+            ),
+            CreateRoleCommand(
+                createRole=CreateRole(
+                    roleName='admin',
+                    permissions=[ p for p in DefaultAdminPermissions ]
+                ),
+            )
+        ]
+        raw_commands: typing.List[typing.Dict[str, typing.Dict[str, typing.Any]]] = [
+            {
+                'addPeer': {
+                    'peer': {
+                        'address':'127.0.0.1:10001',
+                        'peerKey': 'bddd58404d1315e0eb27902c5d7c8eb0602c16238f005773df406bc191308929'
+                    },
                 },
             },
-        },
-        {
-            'createRole': {
-                'roleName': 'admin',
-                'permissions': [ p.value for p in DefaultAdminPermissions ]
+            {
+                'createRole': {
+                    'roleName': 'admin',
+                    'permissions': [ p.value for p in DefaultAdminPermissions ]
+                },
             },
-        },
-        {
-            'createRole': {
-                'roleName': 'user',
-                'permissions': [ p.value for p in DefaultUserPermissions ]
+            {
+                'createRole': {
+                    'roleName': 'user',
+                    'permissions': [ p.value for p in DefaultUserPermissions ]
+                },
             },
-        },
-        {
-            'createRole': {
-                'roleName': 'money_creator',
-                'permissions': [ p.value for p in DefaultMoneyCreatorPermissions ],
+            {
+                'createRole': {
+                    'roleName': 'money_creator',
+                    'permissions': [ p.value for p in DefaultMoneyCreatorPermissions ],
+                },
             },
-        },
-        {
-            'createDomain': {
-                'domainId': 'test',
-                'defaultRole': 'user',
+            {
+                'createDomain': {
+                    'domainId': 'test',
+                    'defaultRole': 'user',
+                },
             },
-        },
-        {
-            'createAsset': {
-                'assetName': 'coin',
-                'domainId': 'test',
-                'precision': 2,
+            {
+                'createAsset': {
+                    'assetName': 'coin',
+                    'domainId': 'test',
+                    'precision': 2,
+                },
             },
-        },
-        {
-            'createAccount': {
-                'accountName': 'admin',
-                'domainId': 'test',
-                'publicKey': '313a07e6384776ed95447710d15e59148473ccfc052a681317a72a69f2a49910',
+            {
+                'createAccount': {
+                    'accountName': 'admin',
+                    'domainId': 'test',
+                    'publicKey': '313a07e6384776ed95447710d15e59148473ccfc052a681317a72a69f2a49910',
+                },
             },
-        },
-        {
-            'createAccount': {
-                'accountName': 'test',
-                'domainId': 'test',
-                'publicKey': '716fe505f69f18511a1b083915aa9ff73ef36e6688199f3959750db38b8f4bfc',
+            {
+                'createAccount': {
+                    'accountName': 'test',
+                    'domainId': 'test',
+                    'publicKey': '716fe505f69f18511a1b083915aa9ff73ef36e6688199f3959750db38b8f4bfc',
+                },
             },
-        },
-        { 'appendRole': { 'accountId': 'admin@test', 'roleName': 'admin' } },
-        { 'appendRole': { 'accountId': 'admin@test', 'roleName': 'money_creator' } },
-    ]
-    return GenesisBlock(
-        block_v1=Block(
-            payload=BlockPayload(
-                transactions=[
-                    Transaction(
-                        payload=TransactionPayload(
-                            reducedPayload=ReducedPayload(
-                                commands=commands,
-                                quorum=1,
+            { 'appendRole': { 'accountId': 'admin@test', 'roleName': 'admin' } },
+            { 'appendRole': { 'accountId': 'admin@test', 'roleName': 'money_creator' } },
+        ]
+        import uuid
+        return GenesisBlock(
+            _id=uuid.uuid4(),
+            block_v1=Block(
+                payload=BlockPayload(
+                    transactions=[
+                        Transaction(
+                            payload=TransactionPayload(
+                                reducedPayload=ReducedPayload(
+                                    commands=commands,
+                                    quorum=1,
+                                )
                             )
-                        )
-                    ),
-                ],
-                txNumber=1,
-                height="1",
-                prevBlockHash='0000000000000000000000000000000000000000000000000000000000000000',
+                        ),
+                    ],
+                    txNumber=1,
+                    height="1",
+                    prevBlockHash='0000000000000000000000000000000000000000000000000000000000000000',
+                )
             )
         )
-    )
+
+schema = strawberry.Schema(query=Query)

@@ -7,6 +7,17 @@ networks:
 services:
   client:
     build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/usr/src/app
+    command:
+      - /usr/local/bin/poetry
+      - run
+      - strawberry
+      - server
+      - playground.app
+    tty: true
     depends_on:
       - node
     networks:
@@ -33,7 +44,7 @@ services:
     user: ${U_ID:-0}:${G_ID:-0}
     depends_on:
       - postgres
-    tty: true
+    # tty: true
     volumes:
       - ./iroha:/opt/iroha:delegated
       - ccache-data:/tmp/ccache:delegated
