@@ -19,4 +19,5 @@ USER user
 WORKDIR /usr/src/app/
 
 COPY ./pyproject.toml  .
+COPY ./poetry.lock .
 RUN poetry install --no-root # --no-dev

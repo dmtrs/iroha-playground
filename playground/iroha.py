@@ -1,3 +1,4 @@
+import binascii
 import typing
 import os
 
@@ -29,7 +30,46 @@ class IrohaException(Exception):
         self.error_code = error_code
 
 
-def get_asset_info(asset_id: str) -> typing.Any:
+def create_asset(*, asset_name:  str, domain_id: str, precision: int) -> typing.Tuple[str, str, str]:
+    tx = admin.transaction([
+        admin.command('CreateAsset',
+            asset_name=asset_name, 
+            domain_id=domain_id,
+            precision=precision,
+        )
+    ])
+    IrohaCrypto.sign_transaction(tx, ADMIN_PRIVATE_KEY)
+
+    hex_hash = binascii.hexlify(IrohaCrypto.hash(tx))
+    net.send_tx(tx)
+    for s in net.tx_status_stream(tx, timeout=1):
+        (status, *_) = s
+        continue
+    return hex_hash, status, ADMIN_ACCOUNT_ID
+
+
+def get_transactions(*, tx_hashes: typing.List[str]) -> typing.Iterable[typing.Tuple[str,str]]:
+    query = admin.query('GetTransactions', tx_hashes=[ bytes(tx, 'utf-8') for tx in tx_hashes ])
+    IrohaCrypto.sign_query(query, ADMIN_PRIVATE_KEY)
+    
+    response = net.send_query(query)
+    if response.HasField('error_response'):
+        err = response.error_response
+        raise IrohaException(
+            err.message,
+            reason=err.reason or None,
+            error_code=err.error_code or None,
+        )
+
+    for tx in response.transactions_response.transactions:
+        yield (tx, tx.payload.reduced_payload.creator_account_id)
+
+
+def tx_status(*, hex_hash: str) -> str:
+    for tx, *_  in get_transactions(tx_hashes=[hex_hash]):
+        return net.tx_status(tx)
+
+def get_asset_info(*, asset_id: str) -> typing.Any:
     query = admin.query('GetAssetInfo', asset_id=asset_id)
     IrohaCrypto.sign_query(query, ADMIN_PRIVATE_KEY)
     
