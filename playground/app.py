@@ -1,6 +1,6 @@
+import typing
 import strawberry
 import playground.iroha as iroha
-
 
 @strawberry.type
 class Asset:
@@ -8,23 +8,27 @@ class Asset:
     domain_id: str
     precision: int
 
-    def __new__(cls, *args, **kwargs):
-        f = super(Asset, cls).__new__(cls)
-        f.asset_id = kwargs['asset_id']
-        f.domain_id = kwargs['asset_id']
-        f.precision = kwargs['precision']
-        return f
+class AssetResolver:
+    def __new__(cls, *, iroha: typing.Any = iroha) -> typing.Any:
+        assert iroha
+        if not hasattr(cls,'_inst'):
+            cls._inst = super(AssetResolver, cls).__new__(cls)
+            cls._iroha = iroha
+        return cls._inst
 
-
-@strawberry.type
-class Query:
-    @strawberry.field
-    def get_asset(asset_id: strawberry.ID) -> Asset:
+    def __call__(self, asset_id: strawberry.ID) -> Asset:
         r = iroha.get_asset_info(asset_id)
+        if isinstance(r, iroha.IrohaException):
+            raise r
+
         return Asset(
             asset_id=r.asset_id,
             domain_id=r.domain_id,
-            precision=r.precision,
+            precision=r.precision
         )
+
+@strawberry.type
+class Query:
+    asset: Asset = strawberry.field(resolver=AssetResolver().__call__)
 
 schema = strawberry.Schema(query=Query)

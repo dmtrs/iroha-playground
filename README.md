@@ -3,17 +3,20 @@
 Hyperldeger Iroha test network setup as a Playground. 
 See: [hyperledger/iroha](https://github.com/hyperledger/iroha)
 
-## Test network
+## Bootstrap
 
 ```
-docker-compose up
+docker-compose up --detach
 ```
+
+Graphql server under: `http://localhost:8000`
 
 ## Local image
 
 ```
 docker build -t iroha-playground
-docker run -v $(pwd):/usr/src/app --rm -ti iroha-playground poetry run pythone keygen.py --name {KEY_NAME_HERE}
+docker run -v $(pwd):/usr/src/app --rm -ti iroha-playground poetry run python keygen.py --name {KEY_NAME_HERE}
+docker run -v $(pwd):/usr/src/app --rm -ti iroha-playground poetry run ptw -- --mypy playground --cov=playground --cov-report=term-missing:skip-covered --cov-report=xml tests/unit
 ```
 
 ### Misc

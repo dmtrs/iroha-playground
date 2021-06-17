@@ -8,8 +8,12 @@ IROHA_HOST_ADDR = os.getenv('IROHA_HOST_ADDR', 'node')
 IROHA_PORT = os.getenv('IROHA_PORT', '50051')
 ADMIN_PRIVATE_KEY = os.getenv('ADMIN_PRIVATE_KEY', '4148a3308e04975baa77ad2b5f4ac70f250506cf6cf388d3963ade2c68e5b2ad')
 
-iroha = Iroha(ADMIN_ACCOUNT_ID)
 net = IrohaGrpc('{}:{}'.format(IROHA_HOST_ADDR, IROHA_PORT))
+
+def init_client(account_id: str) -> Iroha:
+    return Iroha(account_id)
+
+admin = init_client(ADMIN_ACCOUNT_ID)
 
 class IrohaException(Exception):
     def __init__(
@@ -26,7 +30,7 @@ class IrohaException(Exception):
 
 
 def get_asset_info(asset_id: str) -> typing.Any:
-    query = iroha.query('GetAssetInfo', asset_id=asset_id)
+    query = admin.query('GetAssetInfo', asset_id=asset_id)
     IrohaCrypto.sign_query(query, ADMIN_PRIVATE_KEY)
     
     response = net.send_query(query)
