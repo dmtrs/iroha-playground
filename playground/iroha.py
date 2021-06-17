@@ -2,7 +2,9 @@ import binascii
 import typing
 import os
 
-from iroha import Iroha, IrohaGrpc, IrohaCrypto
+from iroha import Iroha as Iroha
+from iroha import IrohaGrpc as IrohaGrpc
+from iroha import IrohaCrypto as IrohaCrypto
 
 ADMIN_ACCOUNT_ID = os.getenv('ADMIN_ACCOUNT_ID', 'admin@test')
 IROHA_HOST_ADDR = os.getenv('IROHA_HOST_ADDR', 'node')
@@ -29,56 +31,59 @@ class IrohaException(Exception):
         self.reason = reason
         self.error_code = error_code
 
+class IrohaClient:
+    def create_asset(self, *, asset_name:  str, domain_id: str, precision: int) -> typing.Tuple[bytes, str, str]:
+        tx = admin.transaction([
+            admin.command('CreateAsset',
+                asset_name=asset_name, 
+                domain_id=domain_id,
+                precision=precision,
+            )
+        ])
+        IrohaCrypto.sign_transaction(tx, ADMIN_PRIVATE_KEY)
 
-def create_asset(*, asset_name:  str, domain_id: str, precision: int) -> typing.Tuple[str, str, str]:
-    tx = admin.transaction([
-        admin.command('CreateAsset',
-            asset_name=asset_name, 
-            domain_id=domain_id,
-            precision=precision,
-        )
-    ])
-    IrohaCrypto.sign_transaction(tx, ADMIN_PRIVATE_KEY)
-
-    hex_hash = binascii.hexlify(IrohaCrypto.hash(tx))
-    net.send_tx(tx)
-    for s in net.tx_status_stream(tx, timeout=1):
-        (status, *_) = s
-        continue
-    return hex_hash, status, ADMIN_ACCOUNT_ID
-
-
-def get_transactions(*, tx_hashes: typing.List[str]) -> typing.Iterable[typing.Tuple[str,str]]:
-    query = admin.query('GetTransactions', tx_hashes=[ bytes(tx, 'utf-8') for tx in tx_hashes ])
-    IrohaCrypto.sign_query(query, ADMIN_PRIVATE_KEY)
-    
-    response = net.send_query(query)
-    if response.HasField('error_response'):
-        err = response.error_response
-        raise IrohaException(
-            err.message,
-            reason=err.reason or None,
-            error_code=err.error_code or None,
-        )
-
-    for tx in response.transactions_response.transactions:
-        yield (tx, tx.payload.reduced_payload.creator_account_id)
+        hex_hash = binascii.hexlify(IrohaCrypto.hash(tx))
+        net.send_tx(tx)
+        for s in net.tx_status_stream(tx, timeout=1):
+            (status, *_) = s
+            continue
+        return hex_hash, str(status), ADMIN_ACCOUNT_ID
 
 
-def tx_status(*, hex_hash: str) -> str:
-    for tx, *_  in get_transactions(tx_hashes=[hex_hash]):
-        return net.tx_status(tx)
+    def get_transactions(self, *, tx_hashes: typing.List[str]) -> typing.Iterable[typing.Tuple[str,str]]:
+        query = admin.query('GetTransactions', tx_hashes=[ bytes(tx, 'utf-8') for tx in tx_hashes ])
+        IrohaCrypto.sign_query(query, ADMIN_PRIVATE_KEY)
+        
+        response = net.send_query(query)
+        if response.HasField('error_response'):
+            err = response.error_response
+            raise IrohaException(
+                err.message,
+                reason=err.reason or None,
+                error_code=err.error_code or None,
+            )
 
-def get_asset_info(*, asset_id: str) -> typing.Any:
-    query = admin.query('GetAssetInfo', asset_id=asset_id)
-    IrohaCrypto.sign_query(query, ADMIN_PRIVATE_KEY)
-    
-    response = net.send_query(query)
-    if response.HasField('error_response'):
-        err = response.error_response
-        return IrohaException(
-            err.message,
-            reason=err.reason or None,
-            error_code=err.error_code or None,
-        )
-    return response.asset_response.asset
+        for tx in response.transactions_response.transactions:
+            yield (tx, tx.payload.reduced_payload.creator_account_id)
+
+
+    def tx_status(self, *, hex_hash: str) -> typing.Any:
+        for tx, *_  in self.get_transactions(tx_hashes=[hex_hash]):
+            return net.tx_status(tx)
+
+    def get_asset_info(self, *, asset_id: str) -> typing.Any:
+        query = admin.query('GetAssetInfo', asset_id=asset_id)
+        IrohaCrypto.sign_query(query, ADMIN_PRIVATE_KEY)
+        
+        response = net.send_query(query)
+        if response.HasField('error_response'):
+            err = response.error_response
+            return IrohaException(
+                err.message,
+                reason=err.reason or None,
+                error_code=err.error_code or None,
+            )
+        return response.asset_response.asset
+
+def instance() ->IrohaClient:
+    return IrohaClient()

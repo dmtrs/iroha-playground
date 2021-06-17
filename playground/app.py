@@ -1,7 +1,9 @@
 import enum
 import typing
 import strawberry
-import playground.iroha as iroha
+# import playground.iroha as iroha
+
+from playground.iroha import (IrohaClient, instance, IrohaException)
 
 @strawberry.type
 class Asset:
@@ -10,16 +12,17 @@ class Asset:
     precision: int
 
 class AssetResolver:
-    def __new__(cls, *, iroha: typing.Any = iroha) -> typing.Any:
+    _iroha: IrohaClient
+    def __new__(cls, *, iroha: typing.Callable[[], IrohaClient]=instance) -> typing.Any:
         assert iroha
         if not hasattr(cls,'_inst'):
             cls._inst = super(AssetResolver, cls).__new__(cls)
-            cls._inst._iroha = iroha
+            cls._inst._iroha = iroha()
         return cls._inst
 
     def __call__(self, asset_id: strawberry.ID) -> Asset:
         r = self._iroha.get_asset_info(asset_id=asset_id)
-        if isinstance(r, self._iroha.IrohaException):
+        if isinstance(r, IrohaException):
             raise r
 
         return Asset(
@@ -30,6 +33,7 @@ class AssetResolver:
 
 @strawberry.enum
 class TransactionStatus(enum.Enum):
+    NONE = None
     COMMITTED = 'COMMITTED'
     ENOUGH_SIGNATURES_COLLECTED = 'ENOUGH_SIGNATURES_COLLECTED'
     REJECTED = 'REJECTED'
@@ -39,34 +43,35 @@ class TransactionStatus(enum.Enum):
 class Transaction:
     hex_hash: strawberry.ID
     creator_account_id: str
+    __status: typing.Optional[TransactionStatus] = None
 
     @strawberry.field
-    def status(self) -> TransactionStatus:
-        try:
-            return self._status
-        except AttributeError:
-            self._status = TransactionStatus(TransactionResolver().status(self.hex_hash))
+    def status(self) -> typing.Optional[TransactionStatus]:
+        if not self.__status:
+            self.___status = TransactionStatus(TransactionResolver().status(self.hex_hash))
 
-        return self._status
+        return self.__status
 
     def update_status(self, status: TransactionStatus) -> None:
         self._status = status
 
 class TransactionResolver:
-    def __new__(cls, *, iroha: typing.Any = iroha) -> typing.Any:
+    _iroha: IrohaClient
+    def __new__(cls, *, iroha: typing.Callable[[], IrohaClient]=instance) -> typing.Any:
         assert iroha
         if not hasattr(cls,'_inst'):
             cls._inst = super(TransactionResolver, cls).__new__(cls)
-            cls._inst._iroha = iroha
+            cls._inst._iroha = iroha()
         return cls._inst
 
     def __call__(self, tx_hash: str) -> typing.Iterable[Transaction]: 
         for r, creator_account_id in self._iroha.get_transactions(tx_hashes=[tx_hash]):
-            yield Transaction(hex_hash=tx_hash, creator_account_id=creator_account_id)
+            yield Transaction(hex_hash=strawberry.ID(tx_hash), creator_account_id=creator_account_id)
 
-    def status(self, hex_hash: str) -> int:
+    def status(self, hex_hash: str) -> typing.Optional[str]:
         for r in self._iroha.tx_status(hex_hash=hex_hash):
-            return r
+            return str(r)
+        return None
         
         
 
@@ -84,31 +89,34 @@ class IAsset:
     precision: int
 
 class AssetMutator:
-    def __new__(cls, *, iroha: typing.Any = iroha) -> typing.Any:
+    _iroha: IrohaClient
+    def __new__(cls, *, iroha: typing.Callable[[], IrohaClient]=instance) -> typing.Any:
         assert iroha
         if not hasattr(cls,'_inst'):
             cls._inst = super(AssetMutator, cls).__new__(cls)
             cls._inst._iroha = iroha
         return cls._inst
 
-    def create_asset(self, input_asset: IAsset) -> Transaction:
+    def create_asset(self, *, input_asset: IAsset) -> Transaction:
         tx, status, creator_account_id = self._iroha.create_asset(
             asset_name=input_asset.asset_name,
             domain_id=input_asset.domain_id,
             precision=input_asset.precision,
         )
-        if isinstance(tx, self._iroha.IrohaException):
+        if isinstance(tx, IrohaException):
             raise tx
 
-        tx = Transaction(
-            hex_hash=tx.decode('utf-8'),
+        final_tx = Transaction(
+            hex_hash=strawberry.ID(tx.decode('utf-8')),
             creator_account_id=creator_account_id,
         )
-        tx.update_status(status)
-        return tx
+        final_tx.update_status(TransactionStatus(status))
+        return final_tx
 
 @strawberry.type
 class Mutation:
-    create_asset: Transaction = strawberry.mutation(AssetMutator().create_asset)
+    @strawberry.mutation
+    def create_asset(self, input_asset: IAsset) -> Transaction:
+        return AssetMutator().create_asset(input_asset=input_asset)
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)

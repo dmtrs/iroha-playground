@@ -103,7 +103,7 @@ class GenesisBlock:
 class Query:
     @strawberry.field
     def default_genesis(self) -> GenesisBlock:
-        commands = [
+        commands: typing.List[typing.Union[AddPeerCommand, CreateRoleCommand]] = [
             AddPeerCommand(
                 addPeer=AddPeer(
                     address='127.0.0.1:10001',
@@ -176,7 +176,7 @@ class Query:
         ]
         import uuid
         return GenesisBlock(
-            _id=uuid.uuid4(),
+            _id=strawberry.ID(str(uuid.uuid4())),
             block_v1=Block(
                 payload=BlockPayload(
                     transactions=[
