@@ -4,7 +4,7 @@ import strawberry
 import dataclasses
 
 @strawberry.enum
-class DefaultAdminPermissions(enum.Enum):
+class DefaultAdminPermissions(str, enum.Enum):
     can_add_peer="can_add_peer"
     can_add_signatory="can_add_signatory"
     can_create_account="can_create_account"
@@ -23,7 +23,7 @@ class DefaultAdminPermissions(enum.Enum):
     can_set_quorum="can_set_quorum"
 
 @strawberry.enum
-class DefaultUserPermissions(enum.Enum):
+class DefaultUserPermissions(str, enum.Enum):
     can_add_signatory="can_add_signatory"
     can_get_my_acc_ast="can_get_my_acc_ast"
     can_get_my_acc_ast_txs="can_get_my_acc_ast_txs"
@@ -43,16 +43,20 @@ class DefaultUserPermissions(enum.Enum):
     can_transfer="can_transfer"
 
 @strawberry.enum
-class DefaultMoneyCreatorPermissions(enum.Enum):
+class DefaultMoneyCreatorPermissions(str, enum.Enum):
     can_add_asset_qty="can_add_asset_qty"
     can_create_asset="can_create_asset"
     can_receive="can_receive"
     can_transfer="can_transfer"
 
 @strawberry.type
-class AddPeer:
+class Peer:
     address: str
     peerKey: str
+
+@strawberry.type
+class AddPeer:
+    peer: Peer
 
 @strawberry.type
 class AddPeerCommand:
@@ -67,6 +71,13 @@ class CreateRole:
 class CreateRoleCommand:
     createRole: CreateRole
 
+@strawberry.type
+class CreateAccount:
+    pass
+
+@strawberry.type
+class CreateAccountCommand:
+    createAccount: CreateAccount
 @strawberry.type
 class ReducedPayload:
     commands: typing.List[typing.Union[
@@ -96,7 +107,6 @@ class Block:
 
 @strawberry.type
 class GenesisBlock:
-    _id: strawberry.ID
     block_v1: Block
 
 @strawberry.type
@@ -106,8 +116,10 @@ class Query:
         commands: typing.List[typing.Union[AddPeerCommand, CreateRoleCommand]] = [
             AddPeerCommand(
                 addPeer=AddPeer(
-                    address='127.0.0.1:10001',
-                    peerKey='bddd58404d1315e0eb27902c5d7c8eb0602c16238f005773df406bc191308929',
+                    Peer(
+                        address='127.0.0.1:10001',
+                        peerKey='bddd58404d1315e0eb27902c5d7c8eb0602c16238f005773df406bc191308929',
+                    )
                 )
             ),
             CreateRoleCommand(
@@ -115,68 +127,60 @@ class Query:
                     roleName='admin',
                     permissions=[ p for p in DefaultAdminPermissions ]
                 ),
+            ),
+            CreateRoleCommand(
+                createRole=CreateRole(
+                    roleName='user',
+                    permissions=[ p for p in DefaultUserPermissions ]
+                ),
+            ),
+            CreateRoleCommand(
+                createRole=CreateRole(
+                    roleName='money_creator',
+                    permissions=[ p for p in DefaultMoneyCreatorPermissions ]
+                ),
+            ),
+            CreateDomainCommand(
+                createDomain=CreateDomain(
+                    domainId='test',
+                    defaultRole='user',
+                )
+            ),
+            CreateAssetCommand(
+                createAsset=CreateAsset(
+                    assetName='coin',
+                    domainId='test',
+                    precision=2,
+                ),
+            ),
+            CreateAccountCommand(
+                createAccount=CreateAccount(
+                    accountName='admin',
+                    domainId='test',
+                    publicKey='313a07e6384776ed95447710d15e59148473ccfc052a681317a72a69f2a49910',
+                ),
+            ),
+            CreateAccountCommand(
+                createAccount=CreateAccount(
+                    accountName='test',
+                    domainId='test',
+                    publicKey='716fe505f69f18511a1b083915aa9ff73ef36e6688199f3959750db38b8f4bfc',
+                ),
+            ),
+            AppendRoleCommand(
+                appendRole=AppendRole(
+                    accountId='admin@test',
+                    role='admin'
+                )
+            ),
+            AppendRoleCommand(
+                appendRole=AppendRole(
+                    accountId='admin@test',
+                    role='money_maker'
+                )
             )
         ]
-        raw_commands: typing.List[typing.Dict[str, typing.Dict[str, typing.Any]]] = [
-            {
-                'addPeer': {
-                    'peer': {
-                        'address':'127.0.0.1:10001',
-                        'peerKey': 'bddd58404d1315e0eb27902c5d7c8eb0602c16238f005773df406bc191308929'
-                    },
-                },
-            },
-            {
-                'createRole': {
-                    'roleName': 'admin',
-                    'permissions': [ p.value for p in DefaultAdminPermissions ]
-                },
-            },
-            {
-                'createRole': {
-                    'roleName': 'user',
-                    'permissions': [ p.value for p in DefaultUserPermissions ]
-                },
-            },
-            {
-                'createRole': {
-                    'roleName': 'money_creator',
-                    'permissions': [ p.value for p in DefaultMoneyCreatorPermissions ],
-                },
-            },
-            {
-                'createDomain': {
-                    'domainId': 'test',
-                    'defaultRole': 'user',
-                },
-            },
-            {
-                'createAsset': {
-                    'assetName': 'coin',
-                    'domainId': 'test',
-                    'precision': 2,
-                },
-            },
-            {
-                'createAccount': {
-                    'accountName': 'admin',
-                    'domainId': 'test',
-                    'publicKey': '313a07e6384776ed95447710d15e59148473ccfc052a681317a72a69f2a49910',
-                },
-            },
-            {
-                'createAccount': {
-                    'accountName': 'test',
-                    'domainId': 'test',
-                    'publicKey': '716fe505f69f18511a1b083915aa9ff73ef36e6688199f3959750db38b8f4bfc',
-                },
-            },
-            { 'appendRole': { 'accountId': 'admin@test', 'roleName': 'admin' } },
-            { 'appendRole': { 'accountId': 'admin@test', 'roleName': 'money_creator' } },
-        ]
-        import uuid
         return GenesisBlock(
-            _id=strawberry.ID(str(uuid.uuid4())),
             block_v1=Block(
                 payload=BlockPayload(
                     transactions=[

@@ -47,10 +47,10 @@ class IrohaClient:
         for s in net.tx_status_stream(tx, timeout=1):
             (status, *_) = s
             continue
-        return hex_hash, str(status), ADMIN_ACCOUNT_ID
+        return (hex_hash, str(status), ADMIN_ACCOUNT_ID)
 
 
-    def get_transactions(self, *, tx_hashes: typing.List[str]) -> typing.Iterable[typing.Tuple[str,str]]:
+    def get_transactions(self, *, tx_hashes: typing.List[str], status: bool=True) -> typing.Iterable[typing.Tuple[str,str,str]]:
         query = admin.query('GetTransactions', tx_hashes=[ bytes(tx, 'utf-8') for tx in tx_hashes ])
         IrohaCrypto.sign_query(query, ADMIN_PRIVATE_KEY)
         
@@ -64,12 +64,7 @@ class IrohaClient:
             )
 
         for tx in response.transactions_response.transactions:
-            yield (tx, tx.payload.reduced_payload.creator_account_id)
-
-
-    def tx_status(self, *, hex_hash: str) -> typing.Any:
-        for tx, *_  in self.get_transactions(tx_hashes=[hex_hash]):
-            return net.tx_status(tx)
+            yield (tx, str(net.tx_status(tx)), tx.payload.reduced_payload.creator_account_id)
 
     def get_asset_info(self, *, asset_id: str) -> typing.Any:
         query = admin.query('GetAssetInfo', asset_id=asset_id)
