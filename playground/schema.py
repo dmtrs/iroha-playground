@@ -11,7 +11,7 @@ from playground.resolvers import (
     AssetResolver,
     TransactionResolver,
 )
-from playground.mutator import (
+from playground.mutators import (
     AssetMutator
 )
 
