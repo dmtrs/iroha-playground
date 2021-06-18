@@ -489,6 +489,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "punq"
+version = "0.4.1"
+description = "Unintrusive dependency injection for Python 3.6 +"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "py"
 version = "1.10.0"
 description = "library with cross-python path, ini-parsing, io, code, log facilities"
@@ -810,7 +818,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9.0"
-content-hash = "6e1373558063c95a9bc003cca34ffb7a2222ec43d53165b69726b00daa9cdd81"
+content-hash = "b53b125a6a0500b761e59a1eae1e936bf38a1a50af590c20538e58beb2b1364e"
 
 [metadata.files]
 appdirs = [
@@ -1216,6 +1224,9 @@ protobuf = [
 ptyprocess = [
     {file = "ptyprocess-0.7.0-py2.py3-none-any.whl", hash = "sha256:4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35"},
     {file = "ptyprocess-0.7.0.tar.gz", hash = "sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220"},
+]
+punq = [
+    {file = "punq-0.4.1.tar.gz", hash = "sha256:570494d52215611334d0d604853ac3ddfe1b62fccb4ad95ea5158618d1a90914"},
 ]
 py = [
     {file = "py-1.10.0-py2.py3-none-any.whl", hash = "sha256:3b80836aa6d1feeaa108e046da6423ab8f6ceda6468545ae8d02d9d58d18818a"},

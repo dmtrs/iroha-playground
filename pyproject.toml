@@ -27,6 +27,7 @@ classifiers = [
 python = "^3.9.0"
 iroha = "^1.0.0"
 strawberry-graphql = {extras = ["debug-server"], version = "^0.66.0"}
+punq = "^0.4.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"

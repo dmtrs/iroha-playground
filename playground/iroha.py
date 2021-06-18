@@ -64,7 +64,8 @@ class IrohaClient:
             )
 
         for tx in response.transactions_response.transactions:
-            yield (tx, str(net.tx_status(tx)), tx.payload.reduced_payload.creator_account_id)
+            (status, *_) = net.tx_status(tx)
+            yield (tx, str(status), tx.payload.reduced_payload.creator_account_id)
 
     def get_asset_info(self, *, asset_id: str) -> typing.Any:
         query = admin.query('GetAssetInfo', asset_id=asset_id)
@@ -79,6 +80,3 @@ class IrohaClient:
                 error_code=err.error_code or None,
             )
         return response.asset_response.asset
-
-def instance() ->IrohaClient:
-    return IrohaClient()

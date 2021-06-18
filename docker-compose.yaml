@@ -44,7 +44,7 @@ services:
     user: ${U_ID:-0}:${G_ID:-0}
     depends_on:
       - postgres
-    # tty: true
+    tty: false
     volumes:
       - ./iroha:/opt/iroha:delegated
       - ccache-data:/tmp/ccache:delegated
