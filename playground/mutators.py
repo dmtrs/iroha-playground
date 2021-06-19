@@ -16,8 +16,8 @@ from playground.domain import (
 class AssetMutator:
     def __call__(self, *, input_asset: IAsset) -> Transaction:
         tx, status, creator_account_id = container.resolve(IrohaClient).create_asset(
-            asset_name=input_asset.asset_name,
-            domain_id=input_asset.domain_id,
+            asset_name=input_asset.name,
+            domain_id=input_asset.domain.id,
             precision=input_asset.precision,
         )
         if isinstance(tx, IrohaException):

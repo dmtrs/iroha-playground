@@ -19,16 +19,17 @@ class AssetResolver:
             raise r
 
         return Asset(
-            asset_id=r.asset_id,
+            id=r.asset_id,
             domain_id=r.domain_id,
             precision=r.precision
         )
 
 class TransactionResolver:
     def __call__(self, tx_hash: str) -> typing.Iterable[Transaction]:
-        for r, status, creator_account_id in container.resolve(IrohaClient).get_transactions(tx_hashes=[tx_hash]):
+        for r, status, creator_account_id, commands in container.resolve(IrohaClient).get_transactions(tx_hashes=[tx_hash]):
             yield Transaction(
                 hex_hash=strawberry.ID(tx_hash),
                 status=TransactionStatus(status),
                 creator_account_id=creator_account_id,
+                commands=commands,
             )
