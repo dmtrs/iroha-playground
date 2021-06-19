@@ -10,26 +10,32 @@ from playground.domain import (
     Asset,
     Transaction,
     TransactionStatus,
+    URI,
 )
 
+class ResolverException(Exception):
+    pass
+    
 class AssetResolver:
-    def __call__(self, asset_id: strawberry.ID) -> Asset:
-        r = container.resolve(IrohaClient).get_asset_info(asset_id=asset_id)
-        if isinstance(r, IrohaException):
-            raise r
-
-        return Asset(
-            id=r.asset_id,
-            domain_id=r.domain_id,
-            precision=r.precision
-        )
+    def __call__(self, uri: str) -> Asset:
+        try:
+            r = container.resolve(IrohaClient).get_asset_info(asset_id=uri) 
+            return Asset(
+                uri=URI(r.asset_id),
+                precision=r.precision
+            )
+        except IrohaException as e:
+            raise ResolverException(e)
 
 class TransactionResolver:
-    def __call__(self, tx_hash: str) -> typing.Iterable[Transaction]:
-        for r, status, creator_account_id, commands in container.resolve(IrohaClient).get_transactions(tx_hashes=[tx_hash]):
-            yield Transaction(
-                hex_hash=strawberry.ID(tx_hash),
-                status=TransactionStatus(status),
-                creator_account_id=creator_account_id,
-                commands=commands,
-            )
+    def __call__(self, uri: str) -> typing.Iterable[Transaction]:
+        try:
+            for _uri, status, creator_account_id, commands in container.resolve(IrohaClient).get_transactions(tx_hashes=[uri]):
+                yield Transaction(
+                    uri=URI(_uri),
+                    status=TransactionStatus(status),
+                    creator_account_uri=creator_account_id,
+                    commands=commands,
+                )
+        except IrohaException as e:
+            raise ResolverException(e)

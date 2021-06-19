@@ -2,6 +2,8 @@ import enum
 import typing
 import strawberry
 
+URI = strawberry.ID
+
 @strawberry.enum
 class TransactionStatus(enum.Enum):
     NONE = None
@@ -9,6 +11,7 @@ class TransactionStatus(enum.Enum):
     ENOUGH_SIGNATURES_COLLECTED = 'ENOUGH_SIGNATURES_COLLECTED'
     REJECTED = 'REJECTED'
     STATEFUL_VALIDATION_FAILED = 'STATEFUL_VALIDATION_FAILED'
+    STATELESS_VALIDATION_FAILED = 'STATELESS_VALIDATION_FAILED'
 
 @strawberry.input
 class IDomain:
@@ -25,35 +28,50 @@ class Domain:
     id: strawberry.ID
 
 class DomainResolver:
-    def __call__(self, id: strawberry.ID) -> Domain:
-        return Domain(id=id)
+    def __call__(self, id: str) -> Domain:
+        return Domain(id=strawberry.ID(id))
 
 @strawberry.type
 class Asset:
-    id: strawberry.ID
+    uri: URI
     precision: int
 
-    domain_id: strawberry.Private[str]
+    @strawberry.field
+    def id(self) -> str:
+        id, *_ = self.uri.split('#')
+        return id
+
     @strawberry.field
     def domain(self) -> Domain:
-        return DomainResolver()(id=strawberry.ID(self.domain_id))
+        *_, domain_id = self.uri.split('#')
+        return DomainResolver()(id=domain_id)
 
 @strawberry.type
 class Account:
-    id: strawberry.ID
+    uri: URI
+
+    @strawberry.field
+    def id(self) -> str:
+        id, *_ = self.uri.split('@')
+        return id
+
+
+    @strawberry.field
+    def domain(self) -> Domain:
+        *_, domain_id = self.uri.split('@')
+        return DomainResolver()(id=domain_id)
 
 class AccountResolver:
-    def __call__(self, *, id: strawberry.ID) -> Account:
-        return Account(id=id)
+    def __call__(self, *, uri: str) -> Account:
+        return Account(uri=URI(uri))
 
 @strawberry.type
 class Transaction:
-    hex_hash: strawberry.ID
+    uri: URI
     status: TransactionStatus
     commands: str
 
-    creator_account_id: strawberry.Private[str]
-
+    creator_account_uri: strawberry.Private[str]
     @strawberry.field
     def creator(self) -> Account:
-        return AccountResolver()(id=strawberry.ID(self.creator_account_id))
+        return AccountResolver()(uri=self.creator_account_uri)

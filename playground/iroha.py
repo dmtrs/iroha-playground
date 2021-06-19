@@ -48,7 +48,7 @@ class IrohaClient:
         for s in net.tx_status_stream(tx, timeout=1):
             (status, *_) = s
             continue
-        return (hex_hash, str(status), ADMIN_ACCOUNT_ID)
+        return (hex_hash, str(status), tx.payload.reduced_payload.creator_account_id, str(tx.payload.reduced_payload.commands))
 
 
     def get_transactions(self, *, tx_hashes: typing.List[str], status: bool=True) -> typing.Iterable[typing.Tuple[str,str,str,str]]:
@@ -57,18 +57,18 @@ class IrohaClient:
         for tx in response.transactions_response.transactions:
             (status, *_) = net.tx_status(tx) # should async
             hex_hash = binascii.hexlify(IrohaCrypto.hash(tx))
-            print(tx)
             yield (str(hex_hash), str(status), tx.payload.reduced_payload.creator_account_id, str(tx.payload.reduced_payload.commands))
 
     def get_asset_info(self, *, asset_id: str) -> typing.Any:
         response = self._send_query('GetAssetInfo', asset_id=asset_id)
         return response.asset_response.asset
 
-    def get_block(self, *, height=1) -> typing.Any:
+    def get_block(self, *, height: int=1) -> typing.Any:
+        assert height > 0
         response = self._send_query('GetBlock', height=height)
         return response
 
-    def _send_query(self, name: str , **kwargs: typing.Dict[str, typing.Any]): 
+    def _send_query(self, name: str , **kwargs: typing.Any) -> typing.Any: 
         query = admin.query(name, **kwargs)
         IrohaCrypto.sign_query(query, ADMIN_PRIVATE_KEY)
         

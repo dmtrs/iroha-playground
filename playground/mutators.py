@@ -11,21 +11,29 @@ from playground.domain import (
     IAsset,
     Transaction,
     TransactionStatus, 
+    URI,
 )
+
+
+class MutatorException(Exception):
+    pass
+
 
 class AssetMutator:
     def __call__(self, *, input_asset: IAsset) -> Transaction:
-        tx, status, creator_account_id = container.resolve(IrohaClient).create_asset(
-            asset_name=input_asset.name,
-            domain_id=input_asset.domain.id,
-            precision=input_asset.precision,
-        )
-        if isinstance(tx, IrohaException):
-            raise tx
+        try:
+            tx, status, creator_account_id, commands = container.resolve(IrohaClient).create_asset(
+                asset_name=input_asset.name,
+                domain_id=input_asset.domain.id,
+                precision=input_asset.precision,
+            )
+        except IrohaException as e:
+            raise MutatorException(e)
 
         return Transaction(
-            hex_hash=strawberry.ID(tx.decode('utf-8')),
-            creator_account_id=creator_account_id,
+            uri=strawberry.ID(tx.decode('utf-8')),
+            creator_account_uri=creator_account_id,
             status=TransactionStatus(status),
+            commands=commands,
         )
 
