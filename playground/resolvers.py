@@ -17,19 +17,18 @@ class ResolverException(Exception):
     pass
     
 class AssetResolver:
-    def __call__(self, uri: str) -> Asset:
+    def __call__(self, uri: str) -> typing.Union[Asset, ResolverException]:
         try:
-            print(container.resolve(IrohaClient))
             _uri, precision = container.resolve(IrohaClient).get_asset_info(asset_id=uri) 
             return Asset(
                 uri=URI(_uri),
                 precision=precision,
             )
         except IrohaException as e:
-            raise ResolverException(e)
+            return ResolverException(e)
 
 class TransactionResolver:
-    def __call__(self, uri: str) -> typing.Iterable[Transaction]:
+    def __call__(self, uri: str) -> typing.Union[typing.Iterable[Transaction], ResolverException]:
         try:
             for _uri, status, creator_account_id, commands in container.resolve(IrohaClient).get_transactions(tx_hashes=[uri]):
                 yield Transaction(
@@ -39,4 +38,4 @@ class TransactionResolver:
                     commands=commands,
                 )
         except IrohaException as e:
-            raise ResolverException(e)
+            return ResolverException(e)

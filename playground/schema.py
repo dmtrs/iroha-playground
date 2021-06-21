@@ -12,7 +12,8 @@ from playground.resolvers import (
     TransactionResolver,
 )
 from playground.mutators import (
-    AssetMutator
+    AssetMutator,
+    MutatorException,
 )
 
 
@@ -24,7 +25,7 @@ class Query:
 @strawberry.type
 class Mutation:
     @strawberry.mutation
-    def create_asset(self, *, input_asset: IAsset) -> Transaction: 
+    def create_asset(self, *, input_asset: IAsset) -> Transaction:
         return AssetMutator().__call__(input_asset=input_asset)
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
