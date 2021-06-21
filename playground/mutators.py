@@ -31,7 +31,7 @@ class AssetMutator:
             raise MutatorException(e)
 
         return Transaction(
-            uri=strawberry.ID(tx.decode('utf-8')),
+            uri=strawberry.ID(tx),
             creator_account_uri=creator_account_id,
             status=TransactionStatus(status),
             commands=commands,

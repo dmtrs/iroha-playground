@@ -19,10 +19,11 @@ class ResolverException(Exception):
 class AssetResolver:
     def __call__(self, uri: str) -> Asset:
         try:
-            r = container.resolve(IrohaClient).get_asset_info(asset_id=uri) 
+            print(container.resolve(IrohaClient))
+            _uri, precision = container.resolve(IrohaClient).get_asset_info(asset_id=uri) 
             return Asset(
-                uri=URI(r.asset_id),
-                precision=r.precision
+                uri=URI(_uri),
+                precision=precision,
             )
         except IrohaException as e:
             raise ResolverException(e)

@@ -33,7 +33,7 @@ class IrohaException(Exception):
         self.error_code = error_code
 
 class IrohaClient:
-    def create_asset(self, *, asset_name:  str, domain_id: str, precision: int) -> typing.Tuple[bytes, str, str]:
+    def create_asset(self, *, asset_name:  str, domain_id: str, precision: int) -> typing.Tuple[str, str, str, str]:
         tx = admin.transaction([
             admin.command('CreateAsset',
                 asset_name=asset_name, 
@@ -48,7 +48,12 @@ class IrohaClient:
         for s in net.tx_status_stream(tx, timeout=1):
             (status, *_) = s
             continue
-        return (hex_hash, str(status), tx.payload.reduced_payload.creator_account_id, str(tx.payload.reduced_payload.commands))
+        return (
+            hex_hash.decode('utf-8'),
+            str(status),
+            str(tx.payload.reduced_payload.creator_account_id),
+            str(tx.payload.reduced_payload.commands),
+        )
 
 
     def get_transactions(self, *, tx_hashes: typing.List[str], status: bool=True) -> typing.Iterable[typing.Tuple[str,str,str,str]]:
@@ -57,11 +62,14 @@ class IrohaClient:
         for tx in response.transactions_response.transactions:
             (status, *_) = net.tx_status(tx) # should async
             hex_hash = binascii.hexlify(IrohaCrypto.hash(tx))
-            yield (str(hex_hash), str(status), tx.payload.reduced_payload.creator_account_id, str(tx.payload.reduced_payload.commands))
+            yield (hex_hash.decode('utf-8'), str(status), tx.payload.reduced_payload.creator_account_id, str(tx.payload.reduced_payload.commands))
 
-    def get_asset_info(self, *, asset_id: str) -> typing.Any:
+    def get_asset_info(self, *, asset_id: str) -> typing.Tuple[str, int]:
         response = self._send_query('GetAssetInfo', asset_id=asset_id)
-        return response.asset_response.asset
+        return (
+            str(response.asset_response.asset_id),
+            int(response.asset_response.precision),
+        )
 
     def get_block(self, *, height: int=1) -> typing.Any:
         assert height > 0
