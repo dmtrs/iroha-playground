@@ -38,4 +38,4 @@ class TransactionResolver:
                     commands=commands,
                 )
         except IrohaException as e:
-            return ResolverException(e)
+            yield ResolverException(e)

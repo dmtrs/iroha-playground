@@ -8,7 +8,7 @@ from playground.iroha import(
 
 
 class TestApp:
-    def test_ok(self, container: Container) -> None:
+    def test_query_asset_ok(self, container: Container) -> None:
         from playground.app import schema
 
         container.resolve(IrohaClient).get_asset_info.return_value = ('coin#test', 0,)
@@ -41,7 +41,7 @@ class TestApp:
         assert not result.errors
         assert result.data == expected
 
-    def test_exception(self, container: Container) -> None:
+    def test_query_asset_exception(self, container: Container) -> None:
         from playground.app import schema
 
         container.resolve(IrohaClient).get_asset_info.side_effect = IrohaException(message='mock')
@@ -58,10 +58,69 @@ class TestApp:
 
         assert result.errors
 
+    def test_query_asset(self, container: Container) -> None:
+        pass
+        from playground.app import schema
 
+        container.resolve(IrohaClient).get_transactions.return_value = [
+            (
+                'foo',
+                'REJECTED',
+                'bar@test',
+                'commands',
+            ),
+        ]
 
+        query = '''
+        query transactions {
+            transaction(uri:"foo") {
+                uri
+                creator {
+                    uri
+                    domain {
+                        id
+                    }
+                    id
+                }
+                commands
+            }
+        }
+        '''
 
+        expected = {
+            'transaction': [
+                {
+                    'uri': 'foo',
+                    'creator': {
+                        'uri': 'bar@test',
+                        'domain': {
+                            'id': 'test',
+                        },
+                        'id': 'bar',
+                    },
+                    'commands': 'commands',
+                }
+            ]
+        }
 
+        result = schema.execute_sync(query)
 
+        assert not result.errors
+        assert result.data == expected
 
+    def test_query_transaction_exception(self, container: Container) -> None:
+        from playground.app import schema
 
+        container.resolve(IrohaClient).get_transactions.side_effect = IrohaException(message='mock')
+
+        query = '''
+        query transactions {
+            transaction(uri:"foo") {
+                uri
+            }
+        }
+        '''
+
+        result = schema.execute_sync(query)
+
+        assert result.errors
