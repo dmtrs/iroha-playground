@@ -19,7 +19,7 @@ class IDomain:
 
 @strawberry.input
 class IAsset:
-    name: str
+    id: str
     domain: IDomain
     precision: int
 

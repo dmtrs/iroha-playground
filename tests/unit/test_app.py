@@ -8,6 +8,69 @@ from playground.iroha import(
 
 
 class TestApp:
+
+    def test_mutation_create_asset(self, container: Container) -> None:
+        from playground.app import schema
+
+        container.resolve(IrohaClient).create_asset.return_value = (
+            'tx_hex_hash',
+            'COMMITTED',
+            'admin@test',
+            'commands',
+        )
+
+        mutation = """
+        mutation createAsset($inputAsset:IAsset!) {
+          createAsset(inputAsset:$inputAsset) {
+            uri
+          }
+        }
+        """
+        variables = {
+            'inputAsset': {
+                'id': 'newcoin',
+                'domain': {
+                    'id': 'foo',
+                },
+                'precision': 0,
+            }
+        }
+        result = schema.execute_sync(mutation, variable_values=variables)
+
+        expected = {
+            'createAsset': {
+                'uri': 'tx_hex_hash',
+            }
+        }
+
+        assert not result.errors
+        assert result.data == expected
+
+    def test_mutation_create_asset_exception(self, container: Container) -> None:
+        from playground.app import schema
+
+        container.resolve(IrohaClient).create_asset.side_effect = IrohaException(message='mock')
+        
+        mutation = """
+        mutation createAsset($inputAsset:IAsset!) {
+          createAsset(inputAsset:$inputAsset) {
+            uri
+          }
+        }
+        """
+        variables = {
+            'inputAsset': {
+                'id': 'newcoin',
+                'domain': {
+                    'id': 'foo',
+                },
+                'precision': 0,
+            }
+        }
+        result = schema.execute_sync(mutation, variable_values=variables)
+
+        assert result.errors
+
     def test_query_asset_ok(self, container: Container) -> None:
         from playground.app import schema
 
@@ -124,3 +187,4 @@ class TestApp:
         result = schema.execute_sync(query)
 
         assert result.errors
+

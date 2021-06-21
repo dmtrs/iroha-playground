@@ -23,7 +23,7 @@ class AssetMutator:
     def __call__(self, *, input_asset: IAsset) -> Transaction:
         try:
             tx, status, creator_account_id, commands = container.resolve(IrohaClient).create_asset(
-                asset_name=input_asset.name,
+                asset_name=input_asset.id,
                 domain_id=input_asset.domain.id,
                 precision=input_asset.precision,
             )
