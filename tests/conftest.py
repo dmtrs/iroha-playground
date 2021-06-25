@@ -1,4 +1,1 @@
-from tests.fixtures import (
-    genesis_block,
-    container,
-)
+from tests.fixtures import container, genesis_block  # noqa

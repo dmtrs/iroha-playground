@@ -1,18 +1,8 @@
-import typing
-
 import strawberry
 
 from playground import container
-from playground.iroha import (
-    IrohaClient,
-    IrohaException,
-)
-from playground.domain import (
-    IAsset,
-    Transaction,
-    TransactionStatus, 
-    URI,
-)
+from playground.domain import IAsset, Transaction, TransactionStatus
+from playground.iroha import IrohaClient, IrohaException
 
 
 class MutatorException(Exception):
@@ -22,7 +12,9 @@ class MutatorException(Exception):
 class AssetMutator:
     def __call__(self, *, input_asset: IAsset) -> Transaction:
         try:
-            tx, status, creator_account_id, commands = container.resolve(IrohaClient).create_asset(
+            tx, status, creator_account_id, commands = container.resolve(
+                IrohaClient
+            ).create_asset(
                 asset_name=input_asset.id,
                 domain_id=input_asset.domain.id,
                 precision=input_asset.precision,
@@ -36,4 +28,3 @@ class AssetMutator:
             status=TransactionStatus(status),
             commands=commands,
         )
-

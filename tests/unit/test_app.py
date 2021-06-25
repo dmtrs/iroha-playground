@@ -1,22 +1,17 @@
-import typing
 from punq import Container
 
-from playground.iroha import(
-    IrohaClient,
-    IrohaException,
-)
+from playground.iroha import IrohaClient, IrohaException
 
 
 class TestApp:
-
     def test_mutation_create_asset(self, container: Container) -> None:
         from playground.app import schema
 
         container.resolve(IrohaClient).create_asset.return_value = (
-            'tx_hex_hash',
-            'COMMITTED',
-            'admin@test',
-            'commands',
+            "tx_hex_hash",
+            "COMMITTED",
+            "admin@test",
+            "commands",
         )
 
         mutation = """
@@ -27,19 +22,19 @@ class TestApp:
         }
         """
         variables = {
-            'inputAsset': {
-                'id': 'newcoin',
-                'domain': {
-                    'id': 'foo',
+            "inputAsset": {
+                "id": "newcoin",
+                "domain": {
+                    "id": "foo",
                 },
-                'precision': 0,
+                "precision": 0,
             }
         }
         result = schema.execute_sync(mutation, variable_values=variables)
 
         expected = {
-            'createAsset': {
-                'uri': 'tx_hex_hash',
+            "createAsset": {
+                "uri": "tx_hex_hash",
             }
         }
 
@@ -49,8 +44,10 @@ class TestApp:
     def test_mutation_create_asset_exception(self, container: Container) -> None:
         from playground.app import schema
 
-        container.resolve(IrohaClient).create_asset.side_effect = IrohaException(message='mock')
-        
+        container.resolve(IrohaClient).create_asset.side_effect = IrohaException(
+            message="mock"
+        )
+
         mutation = """
         mutation createAsset($inputAsset:IAsset!) {
           createAsset(inputAsset:$inputAsset) {
@@ -59,12 +56,12 @@ class TestApp:
         }
         """
         variables = {
-            'inputAsset': {
-                'id': 'newcoin',
-                'domain': {
-                    'id': 'foo',
+            "inputAsset": {
+                "id": "newcoin",
+                "domain": {
+                    "id": "foo",
                 },
-                'precision': 0,
+                "precision": 0,
             }
         }
         result = schema.execute_sync(mutation, variable_values=variables)
@@ -74,9 +71,12 @@ class TestApp:
     def test_query_asset_ok(self, container: Container) -> None:
         from playground.app import schema
 
-        container.resolve(IrohaClient).get_asset_info.return_value = ('coin#test', 0,)
+        container.resolve(IrohaClient).get_asset_info.return_value = (
+            "coin#test",
+            0,
+        )
 
-        query = '''
+        query = """
         query asset {
           asset(uri:"coin#test") {
               uri
@@ -87,16 +87,14 @@ class TestApp:
               precision
           }
         }
-        '''
+        """
 
         expected = {
-            'asset': {
-                'uri': 'coin#test',
-                'id': 'coin',
-                'domain': {
-                    'id': 'test'
-                },
-                'precision': 0,
+            "asset": {
+                "uri": "coin#test",
+                "id": "coin",
+                "domain": {"id": "test"},
+                "precision": 0,
             }
         }
         result = schema.execute_sync(query)
@@ -107,34 +105,35 @@ class TestApp:
     def test_query_asset_exception(self, container: Container) -> None:
         from playground.app import schema
 
-        container.resolve(IrohaClient).get_asset_info.side_effect = IrohaException(message='mock')
+        container.resolve(IrohaClient).get_asset_info.side_effect = IrohaException(
+            message="mock"
+        )
 
-        query = '''
+        query = """
         query asset {
           asset(uri:"foo") {
               uri
           }
         }
-        '''
+        """
 
         result = schema.execute_sync(query)
 
         assert result.errors
 
     def test_query_asset(self, container: Container) -> None:
-        pass
         from playground.app import schema
 
         container.resolve(IrohaClient).get_transactions.return_value = [
             (
-                'foo',
-                'REJECTED',
-                'bar@test',
-                'commands',
+                "foo",
+                "REJECTED",
+                "bar@test",
+                "commands",
             ),
         ]
 
-        query = '''
+        query = """
         query transactions {
             transaction(uri:"foo") {
                 uri
@@ -148,20 +147,20 @@ class TestApp:
                 commands
             }
         }
-        '''
+        """
 
         expected = {
-            'transaction': [
+            "transaction": [
                 {
-                    'uri': 'foo',
-                    'creator': {
-                        'uri': 'bar@test',
-                        'domain': {
-                            'id': 'test',
+                    "uri": "foo",
+                    "creator": {
+                        "uri": "bar@test",
+                        "domain": {
+                            "id": "test",
                         },
-                        'id': 'bar',
+                        "id": "bar",
                     },
-                    'commands': 'commands',
+                    "commands": "commands",
                 }
             ]
         }
@@ -174,17 +173,18 @@ class TestApp:
     def test_query_transaction_exception(self, container: Container) -> None:
         from playground.app import schema
 
-        container.resolve(IrohaClient).get_transactions.side_effect = IrohaException(message='mock')
+        container.resolve(IrohaClient).get_transactions.side_effect = IrohaException(
+            message="mock"
+        )
 
-        query = '''
+        query = """
         query transactions {
             transaction(uri:"foo") {
                 uri
             }
         }
-        '''
+        """
 
         result = schema.execute_sync(query)
 
         assert result.errors
-
