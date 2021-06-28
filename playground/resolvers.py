@@ -10,17 +10,16 @@ class ResolverException(Exception):
 
 
 class AssetResolver:
-    def __call__(self, uri: str) -> typing.Union[Asset, ResolverException]:
+    async def __call__(self, uri: str) -> Asset:
+        client: IrohaClient = container.resolve(IrohaClient)
         try:
-            _uri, precision = container.resolve(IrohaClient).get_asset_info(
-                asset_id=uri
-            )
+            _uri, precision = await client.get_asset_info(asset_id=uri)
             return Asset(
                 uri=URI(_uri),
                 precision=precision,
             )
         except IrohaException as e:
-            return ResolverException(e)
+            raise ResolverException(e)
 
 
 class TransactionResolver:

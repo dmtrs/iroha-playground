@@ -6,7 +6,8 @@ from playground.iroha import ADMIN_ACCOUNT_ID, IrohaClient, IrohaGrpc
 
 
 class TestIrohaClient:
-    def test_get_asset_info(self, container: Container) -> None:
+    @pytest.mark.asyncio
+    async def test_get_asset_info(self, container: Container) -> None:
         mock_net = container.resolve(IrohaGrpc)
         mock_net.send_query.return_value = Mock(
             HasField=lambda *_: False,
@@ -18,8 +19,11 @@ class TestIrohaClient:
 
         client = IrohaClient(net=mock_net)
 
-        (asset_id, precision,) = client.get_asset_info(
-            asset_id="foo#bar",
+        (
+            asset_id,
+            precision,
+        ) = await client.get_asset_info(
+            asset_id='foo#bar',
         )
         assert asset_id == "foo#bar"
         assert precision == 1

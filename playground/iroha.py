@@ -1,6 +1,15 @@
 import binascii
+from typing import (
+    Any,
+    Coroutine,
+    Optional,
+    Tuple,
+    List,
+    Iterable,
+)
 import os
-import typing
+
+from playground.concurrency import run_in_threadpool
 
 from iroha import Iroha as Iroha
 from iroha import IrohaCrypto as IrohaCrypto
@@ -25,8 +34,8 @@ class IrohaException(Exception):
         self,
         message: str,
         *,
-        reason: typing.Optional[str] = None,
-        error_code: typing.Optional[int] = None
+        reason: Optional[str] = None,
+        error_code: Optional[int] = None
     ):
         # Call the base class constructor with the parameters it needs
         super().__init__(message)
@@ -40,19 +49,14 @@ class IrohaClient:
     def __init__(self, net: IrohaGrpc):
         self._net = net
 
-    def create_asset(
-        self, *, asset_name: str, domain_id: str, precision: int
-    ) -> typing.Tuple[str, str, str, str]:
-        tx = admin.transaction(
-            [
-                admin.command(
-                    "CreateAsset",
-                    asset_name=asset_name,
-                    domain_id=domain_id,
-                    precision=precision,
-                )
-            ]
-        )
+    def create_asset(self, *, asset_name:  str, domain_id: str, precision: int) -> Tuple[str, str, str, str]:
+        tx = admin.transaction([
+            admin.command('CreateAsset',
+                asset_name=asset_name, 
+                domain_id=domain_id,
+                precision=precision,
+            )
+        ])
         IrohaCrypto.sign_transaction(tx, ADMIN_PRIVATE_KEY)
 
         hex_hash = binascii.hexlify(IrohaCrypto.hash(tx))
@@ -67,12 +71,9 @@ class IrohaClient:
             str(tx.payload.reduced_payload.commands),
         )
 
-    def get_transactions(
-        self, *, tx_hashes: typing.List[str], status: bool = True
-    ) -> typing.Iterable[typing.Tuple[str, str, str, str]]:
-        response = self._send_query(
-            "GetTransactions", tx_hashes=[bytes(tx, "utf-8") for tx in tx_hashes]
-        )
+
+    def get_transactions(self, *, tx_hashes: List[str], status: bool=True) -> Iterable[Tuple[str,str,str,str]]:
+        response = self._send_query('GetTransactions', tx_hashes=[ bytes(tx, 'utf-8') for tx in tx_hashes ])
 
         for tx in response.transactions_response.transactions:
             (status, *_) = self._net.tx_status(tx)  # should async
@@ -84,6 +85,7 @@ class IrohaClient:
                 str(tx.payload.reduced_payload.commands),
             )
 
+<<<<<<< Updated upstream
     def get_asset_info(self, *, asset_id: str) -> typing.Tuple[str, int]:
         response = self._send_query("GetAssetInfo", asset_id=asset_id)
         return (
@@ -92,11 +94,22 @@ class IrohaClient:
         )
 
     def get_block(self, *, height: int = 1) -> typing.Any:
+=======
+    async def get_asset_info(self, *, asset_id: str) -> Tuple[str, int]:
+        def _get_asset_info(*, asset_id: str) -> Tuple[str, int]:
+            response = self._send_query('GetAssetInfo', asset_id=asset_id)
+            return (
+                str(response.asset_response.asset_id),
+                int(response.asset_response.precision),
+            )
+        return await run_in_threadpool(_get_asset_info, asset_id=asset_id)
+
+    def get_block(self, *, height: int=1) -> Any:
         assert height > 0
         response = self._send_query("GetBlock", height=height)
         return response
 
-    def _send_query(self, name: str, **kwargs: typing.Any) -> typing.Any:
+    def _send_query(self, name: str , **kwargs: Any) -> Any: 
         query = admin.query(name, **kwargs)
         IrohaCrypto.sign_query(query, ADMIN_PRIVATE_KEY)
 
