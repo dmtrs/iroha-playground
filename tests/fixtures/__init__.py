@@ -14,9 +14,20 @@ def genesis_block() -> str:
 
 @pytest.fixture(scope="session", autouse=True)
 def container() -> Container:
-    from playground.iroha import IrohaClient, IrohaGrpc
+    from playground.iroha import (
+        IrohaAccount,
+        IrohaClient,
+        IrohaGrpc,
+    )
 
     mock_container = Container()
+
+    mock_account = IrohaAccount(
+        id='admin@test',
+        private_key='4148a3308e04975baa77ad2b5f4ac70f250506cf6cf388d3963ade2c68e5b2ad',
+    )
+
+    mock_container.register(IrohaAccount, instance=mock_account)
 
     MockIrohaGrpc = create_autospec(IrohaGrpc)
 
@@ -31,7 +42,7 @@ def container() -> Container:
 
     MockIrohaClient = create_autospec(IrohaClient)
 
-    mock_iroha_client = MockIrohaClient(net=mock_iroha_grpc)
+    mock_iroha_client = MockIrohaClient(account=mock_account, net=mock_iroha_grpc)
     # due to mock interferring the container __init__ signature read from punq
     # we set an explicit instance
     mock_container.register(
