@@ -1,3 +1,5 @@
+import typing
+import pytest
 from punq import Container
 
 from playground.iroha import IrohaClient, IrohaException
@@ -68,7 +70,8 @@ class TestApp:
 
         assert result.errors
 
-    def test_query_asset_ok(self, container: Container) -> None:
+    @pytest.mark.asyncio
+    async def test_query_asset_ok(self, container: Container) -> None:
         from playground.app import schema
 
         container.resolve(IrohaClient).get_asset_info.return_value = (
@@ -97,7 +100,7 @@ class TestApp:
                 "precision": 0,
             }
         }
-        result = schema.execute_sync(query)
+        result = await schema.execute(query)
 
         assert not result.errors
         assert result.data == expected

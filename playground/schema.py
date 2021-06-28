@@ -9,7 +9,10 @@ from playground.resolvers import AssetResolver, TransactionResolver
 
 @strawberry.type
 class Query:
-    asset: Asset = strawberry.field(resolver=AssetResolver().__call__)
+    @strawberry.field
+    async def asset(self, *, uri: str) -> Asset:
+        return await AssetResolver()(uri=uri)
+
     transaction: typing.List[Transaction] = strawberry.field(
         resolver=TransactionResolver().__call__
     )

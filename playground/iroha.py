@@ -1,4 +1,6 @@
 import binascii
+import os
+
 from typing import (
     Any,
     Coroutine,
@@ -8,7 +10,8 @@ from typing import (
     Iterable,
 )
 from dataclasses import dataclass
-import os
+
+from playground.concurrency import run_in_threadpool
 
 from iroha import Iroha as Iroha
 from iroha import IrohaCrypto as IrohaCrypto
@@ -85,14 +88,14 @@ class IrohaClient:
                 str(tx.payload.reduced_payload.commands),
             )
 
-    def get_asset_info(self, *, asset_id: str) -> Tuple[str, int]:
+    async def get_asset_info(self, *, asset_id: str) -> Tuple[str, int]:
         def _get_asset_info(*, asset_id: str) -> Tuple[str, int]:
             response = self._send_query('GetAssetInfo', asset_id=asset_id)
             return (
                 str(response.asset_response.asset_id),
                 int(response.asset_response.precision),
             )
-        return _get_asset_info(asset_id=asset_id)
+        return await run_in_threadpool(_get_asset_info, asset_id=asset_id)
 
     def get_block(self, *, height: int=1) -> Any:
         assert height > 0
