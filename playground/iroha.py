@@ -1,14 +1,6 @@
 import binascii
-from typing import (
-    Any,
-    Coroutine,
-    Optional,
-    Tuple,
-    List,
-    Iterable,
-)
 from dataclasses import dataclass
-import os
+from typing import Any, Iterable, List, Optional, Tuple
 
 from iroha import Iroha as Iroha
 from iroha import IrohaCrypto as IrohaCrypto
@@ -18,11 +10,12 @@ from iroha import IrohaGrpc as IrohaGrpc
 @dataclass
 class IrohaAccount:
     id: str
-    private_key: str 
+    private_key: str
 
     @property
     def client(self) -> Iroha:
         return Iroha(self.id)
+
 
 class IrohaException(Exception):
     def __init__(
@@ -46,14 +39,19 @@ class IrohaClient:
         self._net = net
         self._account = account
 
-    def create_asset(self, *, asset_name:  str, domain_id: str, precision: int) -> Tuple[str, str, str, str]:
-        tx = self._account.client.transaction([
-            self._account.client.command('CreateAsset',
-                asset_name=asset_name, 
-                domain_id=domain_id,
-                precision=precision,
-            )
-        ])
+    def create_asset(
+        self, *, asset_name: str, domain_id: str, precision: int
+    ) -> Tuple[str, str, str, str]:
+        tx = self._account.client.transaction(
+            [
+                self._account.client.command(
+                    "CreateAsset",
+                    asset_name=asset_name,
+                    domain_id=domain_id,
+                    precision=precision,
+                )
+            ]
+        )
         IrohaCrypto.sign_transaction(tx, self._account.private_key)
 
         hex_hash = binascii.hexlify(IrohaCrypto.hash(tx))
@@ -87,19 +85,20 @@ class IrohaClient:
 
     def get_asset_info(self, *, asset_id: str) -> Tuple[str, int]:
         def _get_asset_info(*, asset_id: str) -> Tuple[str, int]:
-            response = self._send_query('GetAssetInfo', asset_id=asset_id)
+            response = self._send_query("GetAssetInfo", asset_id=asset_id)
             return (
                 str(response.asset_response.asset_id),
                 int(response.asset_response.precision),
             )
+
         return _get_asset_info(asset_id=asset_id)
 
-    def get_block(self, *, height: int=1) -> Any:
+    def get_block(self, *, height: int = 1) -> Any:
         assert height > 0
         response = self._send_query("GetBlock", height=height)
         return response
 
-    def _send_query(self, name: str , **kwargs: Any) -> Any: 
+    def _send_query(self, name: str, **kwargs: Any) -> Any:
         query = self._account.client.query(name, **kwargs)
         IrohaCrypto.sign_query(query, self._account.private_key)
 

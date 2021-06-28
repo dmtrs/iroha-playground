@@ -2,11 +2,7 @@ import os
 
 import punq
 
-from playground.iroha import (
-    IrohaAccount,
-    IrohaClient,
-    IrohaGrpc,
-)
+from playground.iroha import IrohaAccount, IrohaClient, IrohaGrpc
 
 container = punq.Container()
 
@@ -23,8 +19,11 @@ container.register(
     IrohaGrpc, instance=IrohaGrpc("{}:{}".format(IROHA_HOST_ADDR, IROHA_PORT))
 )
 
-container.register(IrohaAccount, instance=IrohaAccount(
-    id=ADMIN_ACCOUNT_ID,
-    private_key=ADMIN_PRIVATE_KEY,
-))
+container.register(
+    IrohaAccount,
+    instance=IrohaAccount(
+        id=ADMIN_ACCOUNT_ID,
+        private_key=ADMIN_PRIVATE_KEY,
+    ),
+)
 container.register(IrohaClient)
