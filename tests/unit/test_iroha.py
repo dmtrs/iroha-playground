@@ -1,13 +1,8 @@
-import pytest
 from unittest.mock import Mock
 
 from punq import Container
 
-from playground.iroha import (
-    IrohaAccount,
-    IrohaClient,
-    IrohaGrpc,
-)
+from playground.iroha import IrohaAccount, IrohaClient, IrohaGrpc
 
 
 class TestIrohaClient:
