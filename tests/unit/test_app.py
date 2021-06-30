@@ -1,5 +1,6 @@
 from punq import Container
 
+from playground.domain import URI, Asset, Transaction, TransactionStatus
 from playground.iroha import IrohaClient, IrohaException
 
 
@@ -71,9 +72,9 @@ class TestApp:
     def test_query_asset_ok(self, container: Container) -> None:
         from playground.app import schema
 
-        container.resolve(IrohaClient).get_asset_info.return_value = (
-            "coin#test",
-            0,
+        container.resolve(IrohaClient).get_asset.return_value = Asset(
+            uri=URI("coin#test"),
+            precision=0,
         )
 
         query = """
@@ -105,7 +106,7 @@ class TestApp:
     def test_query_asset_exception(self, container: Container) -> None:
         from playground.app import schema
 
-        container.resolve(IrohaClient).get_asset_info.side_effect = IrohaException(
+        container.resolve(IrohaClient).get_asset.side_effect = IrohaException(
             message="mock"
         )
 
@@ -124,18 +125,16 @@ class TestApp:
     def test_query_asset(self, container: Container) -> None:
         from playground.app import schema
 
-        container.resolve(IrohaClient).get_transactions.return_value = [
-            (
-                "foo",
-                "REJECTED",
-                "bar@test",
-                "commands",
-            ),
-        ]
+        container.resolve(IrohaClient).get_transactions.return_value = [ Transaction(
+            uri=URI("foo"),
+            status=TransactionStatus("REJECTED"),
+            creator_account_uri=URI("bar@test"),
+            commands="commands",
+        ) ]
 
         query = """
         query transactions {
-            transaction(uri:"foo") {
+            transaction(uris: [ "foo" ]) {
                 uri
                 creator {
                     uri

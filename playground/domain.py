@@ -79,7 +79,7 @@ class Transaction:
     status: TransactionStatus
     commands: str
 
-    creator_account_uri: strawberry.Private[str]
+    creator_account_uri: strawberry.Private[URI]
 
     @strawberry.field
     def creator(self) -> Account:

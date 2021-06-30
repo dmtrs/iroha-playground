@@ -6,6 +6,8 @@ from iroha import Iroha as Iroha
 from iroha import IrohaCrypto as IrohaCrypto
 from iroha import IrohaGrpc as IrohaGrpc
 
+from playground.domain import URI, Asset, Transaction, TransactionStatus
+
 
 @dataclass
 class IrohaAccount:
@@ -66,32 +68,26 @@ class IrohaClient:
             str(tx.payload.reduced_payload.commands),
         )
 
-    def get_transactions(
-        self, *, tx_hashes: List[str], status: bool = True
-    ) -> Iterable[Tuple[str, str, str, str]]:
+    def get_transactions(self, *, uris: List[URI]) -> Iterable[Transaction]:
         response = self._send_query(
-            "GetTransactions", tx_hashes=[bytes(tx, "utf-8") for tx in tx_hashes]
+            "GetTransactions", tx_hashes=[bytes(uri, "utf-8") for uri in uris]
         )
-
         for tx in response.transactions_response.transactions:
             (status, *_) = self._net.tx_status(tx)  # should async
             hex_hash = binascii.hexlify(IrohaCrypto.hash(tx))
-            yield (
-                hex_hash.decode("utf-8"),
-                str(status),
-                tx.payload.reduced_payload.creator_account_id,
-                str(tx.payload.reduced_payload.commands),
+            yield Transaction(
+                uri=URI(hex_hash.decode("utf-8")),
+                status=TransactionStatus(str(status)),
+                creator_account_uri=URI(str(tx.payload.reduced_payload.creator_account_id)),
+                commands=str(tx.payload.reduced_payload.commands),
             )
 
-    def get_asset_info(self, *, asset_id: str) -> Tuple[str, int]:
-        def _get_asset_info(*, asset_id: str) -> Tuple[str, int]:
-            response = self._send_query("GetAssetInfo", asset_id=asset_id)
-            return (
-                str(response.asset_response.asset_id),
-                int(response.asset_response.precision),
-            )
-
-        return _get_asset_info(asset_id=asset_id)
+    def get_asset(self, *, uri: URI) -> Asset:
+        response = self._send_query("GetAssetInfo", asset_id=uri)
+        return Asset(
+            uri=URI(str(response.asset_response.asset_id)),
+            precision=int(response.asset_response.precision),
+        )
 
     def get_block(self, *, height: int = 1) -> Any:
         assert height > 0

@@ -2,17 +2,23 @@ import typing
 
 import strawberry
 
-from playground.domain import Asset, IAsset, Transaction
+from playground import container
+from playground.domain import URI, Asset, IAsset, Transaction
 from playground.mutators import AssetMutator
-from playground.resolvers import AssetResolver, TransactionResolver
 
+from playground.iroha import IrohaClient
 
 @strawberry.type
 class Query:
-    asset: Asset = strawberry.field(resolver=AssetResolver().__call__)
-    transaction: typing.List[Transaction] = strawberry.field(
-        resolver=TransactionResolver().__call__
-    )
+    @strawberry.field
+    def asset(self, uri: URI) -> Asset:
+        client: IrohaClient = container.resolve(IrohaClient)
+        return client.get_asset(uri=uri)
+
+    @strawberry.field
+    def transaction(self, uris: typing.List[URI]) -> typing.List[Transaction]:
+        client: IrohaClient = container.resolve(IrohaClient)
+        return list(client.get_transactions(uris=uris))
 
 
 @strawberry.type

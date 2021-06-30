@@ -2,11 +2,12 @@ from unittest.mock import Mock
 
 from punq import Container
 
+from playground.domain import URI, Asset
 from playground.iroha import IrohaAccount, IrohaClient, IrohaGrpc
 
 
 class TestIrohaClient:
-    def test_get_asset_info(self, container: Container) -> None:
+    def test_get_asset(self, container: Container) -> None:
         mock_net = container.resolve(IrohaGrpc)
         mock_net.send_query.return_value = Mock(
             HasField=lambda *_: False,
@@ -19,11 +20,9 @@ class TestIrohaClient:
         account = container.resolve(IrohaAccount)
         client = IrohaClient(account=account, net=mock_net)
 
-        (asset_id, precision,) = client.get_asset_info(
-            asset_id="foo#bar",
+        assert Asset(uri=URI('foo#bar'), precision=1) == client.get_asset(
+            uri=URI("foo#bar"),
         )
-        assert asset_id == "foo#bar"
-        assert precision == 1
 
     def test_create_asset_ok(self, container: Container) -> None:
         mock_net = container.resolve(IrohaGrpc)
