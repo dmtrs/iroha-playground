@@ -35,10 +35,12 @@ class IrohaException(Exception):
 class IrohaClient:
     _net: IrohaGrpc
     _account: IrohaAccount
+    _Crypto: IrohaCrypto
 
     def __init__(self, account: IrohaAccount, net: IrohaGrpc):
         self._net = net
         self._account = account
+        self._Crypto = IrohaCrypto
 
     def create_asset(self, *, input_asset: IAsset) -> Transaction:
         tx = self._account.client.transaction(
@@ -51,9 +53,9 @@ class IrohaClient:
                 )
             ]
         )
-        IrohaCrypto.sign_transaction(tx, self._account.private_key)
+        self._Crypto.sign_transaction(tx, self._account.private_key)
 
-        hex_hash = binascii.hexlify(IrohaCrypto.hash(tx))
+        hex_hash = binascii.hexlify(self._Crypto.hash(tx))
         self._net.send_tx(tx)
         for s in self._net.tx_status_stream(tx, timeout=1):
             (status, *_) = s
@@ -71,7 +73,7 @@ class IrohaClient:
         )
         for tx in response.transactions_response.transactions:
             (status, *_) = self._net.tx_status(tx)  # should async
-            hex_hash = binascii.hexlify(IrohaCrypto.hash(tx))
+            hex_hash = binascii.hexlify(self._Crypto.hash(tx))
             yield Transaction(
                 uri=URI(hex_hash.decode("utf-8")),
                 status=TransactionStatus(str(status)),
@@ -95,7 +97,7 @@ class IrohaClient:
 
     def _send_query(self, name: str, **kwargs: Any) -> Any:
         query = self._account.client.query(name, **kwargs)
-        IrohaCrypto.sign_query(query, self._account.private_key)
+        self._Crypto.sign_query(query, self._account.private_key)
 
         response = self._net.send_query(query)
         if response.HasField("error_response"):
