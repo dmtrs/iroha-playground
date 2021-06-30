@@ -1,8 +1,8 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, ANY
 
 from punq import Container
 
-from playground.domain import URI, Asset
+from playground.domain import URI, Asset, IAsset, IDomain, Transaction, TransactionStatus
 from playground.iroha import IrohaAccount, IrohaClient, IrohaGrpc
 
 
@@ -32,15 +32,23 @@ class TestIrohaClient:
         account = container.resolve(IrohaAccount)
         client = IrohaClient(account=account, net=mock_net)
 
-        (hex_hash, status, creator_account_id, commands,) = client.create_asset(
-            asset_name="foo",
-            domain_id="bar",
-            precision=1,
+        actual = client.create_asset(
+            input_asset=IAsset(
+                id="foo",
+                domain=IDomain(uri=URI("bar")),
+                precision=1,
+            )
         )
-        assert len(hex_hash) == 64
-        assert status == "COMMITTED"
-        assert creator_account_id == container.resolve(IrohaAccount).id
+        expected = Transaction(
+            uri=ANY,
+            status=TransactionStatus("COMMITTED"),
+            creator_account_uri=URI(container.resolve(IrohaAccount).id),
+            commands=ANY,
+        )
+        assert expected == actual
+
+        assert len(actual.uri) == 64
         assert (
-            commands.replace("\n", "")
+            actual.commands.replace("\n", "")
             == '[create_asset {  asset_name: "foo"  domain_id: "bar"  precision: 1}]'
         )

@@ -8,11 +8,11 @@ class TestApp:
     def test_mutation_create_asset(self, container: Container) -> None:
         from playground.app import schema
 
-        container.resolve(IrohaClient).create_asset.return_value = (
-            "tx_hex_hash",
-            "COMMITTED",
-            "admin@test",
-            "commands",
+        container.resolve(IrohaClient).create_asset.return_value = Transaction(
+            uri=URI("tx_hex_hash"),
+            status=TransactionStatus("COMMITTED"),
+            creator_account_uri=URI("admin@test"),
+            commands="commands",
         )
 
         mutation = """
@@ -26,7 +26,7 @@ class TestApp:
             "inputAsset": {
                 "id": "newcoin",
                 "domain": {
-                    "id": "foo",
+                    "uri": "foo",
                 },
                 "precision": 0,
             }
@@ -83,7 +83,7 @@ class TestApp:
               uri
               id
               domain {
-                id
+                uri
               }
               precision
           }
@@ -94,7 +94,7 @@ class TestApp:
             "asset": {
                 "uri": "coin#test",
                 "id": "coin",
-                "domain": {"id": "test"},
+                "domain": {"uri": "test"},
                 "precision": 0,
             }
         }
@@ -139,7 +139,7 @@ class TestApp:
                 creator {
                     uri
                     domain {
-                        id
+                        uri
                     }
                     id
                 }
@@ -155,7 +155,7 @@ class TestApp:
                     "creator": {
                         "uri": "bar@test",
                         "domain": {
-                            "id": "test",
+                            "uri": "test",
                         },
                         "id": "bar",
                     },

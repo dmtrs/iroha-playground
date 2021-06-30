@@ -6,7 +6,7 @@ from iroha import Iroha as Iroha
 from iroha import IrohaCrypto as IrohaCrypto
 from iroha import IrohaGrpc as IrohaGrpc
 
-from playground.domain import URI, Asset, Transaction, TransactionStatus
+from playground.domain import URI, Asset, IAsset, Transaction, TransactionStatus
 
 
 @dataclass
@@ -41,16 +41,14 @@ class IrohaClient:
         self._net = net
         self._account = account
 
-    def create_asset(
-        self, *, asset_name: str, domain_id: str, precision: int
-    ) -> Tuple[str, str, str, str]:
+    def create_asset(self, *, input_asset: IAsset) -> Transaction:
         tx = self._account.client.transaction(
             [
                 self._account.client.command(
                     "CreateAsset",
-                    asset_name=asset_name,
-                    domain_id=domain_id,
-                    precision=precision,
+                    asset_name=input_asset.id,
+                    domain_id=input_asset.domain.uri,
+                    precision=input_asset.precision,
                 )
             ]
         )
@@ -61,11 +59,11 @@ class IrohaClient:
         for s in self._net.tx_status_stream(tx, timeout=1):
             (status, *_) = s
             continue
-        return (
-            hex_hash.decode("utf-8"),
-            str(status),
-            str(tx.payload.reduced_payload.creator_account_id),
-            str(tx.payload.reduced_payload.commands),
+        return Transaction(
+            uri=URI(hex_hash.decode("utf-8")),
+            status=TransactionStatus(str(status)),
+            creator_account_uri=URI(str(tx.payload.reduced_payload.creator_account_id)),
+            commands=str(tx.payload.reduced_payload.commands),
         )
 
     def get_transactions(self, *, uris: List[URI]) -> Iterable[Transaction]:
