@@ -1,8 +1,10 @@
 import enum
-
+import typing
 import strawberry
 
-URI = strawberry.ID
+URI = strawberry.scalar(
+    typing.NewType("URI", strawberry.ID),
+)
 
 
 @strawberry.enum

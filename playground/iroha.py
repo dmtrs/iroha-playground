@@ -1,6 +1,18 @@
 import binascii
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Optional, Tuple
+from typing import (
+    Any,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+)
+from collections.abc import (
+    Awaitable
+)
+
+
+from playground.concurrency import Runner
 
 from iroha import Iroha as Iroha
 from iroha import IrohaCrypto as IrohaCrypto
@@ -34,10 +46,12 @@ class IrohaException(Exception):
 class IrohaClient:
     _net: IrohaGrpc
     _account: IrohaAccount
+    _run: Runner
 
-    def __init__(self, account: IrohaAccount, net: IrohaGrpc):
+    def __init__(self, *, account: IrohaAccount, net: IrohaGrpc, run: Runner):
         self._net = net
         self._account = account
+        self._run = run
 
     def create_asset(
         self, *, asset_name: str, domain_id: str, precision: int
@@ -83,15 +97,16 @@ class IrohaClient:
                 str(tx.payload.reduced_payload.commands),
             )
 
-    def get_asset_info(self, *, asset_id: str) -> Tuple[str, int]:
+    def get_asset_info(self, *, asset_id: str) -> Awaitable[Tuple[str, int]]:
         def _get_asset_info(*, asset_id: str) -> Tuple[str, int]:
             response = self._send_query("GetAssetInfo", asset_id=asset_id)
+            print(response)
             return (
-                str(response.asset_response.asset_id),
-                int(response.asset_response.precision),
+                str(response.asset_response.asset.asset_id),
+                int(response.asset_response.asset.precision),
             )
 
-        return _get_asset_info(asset_id=asset_id)
+        return self._run(_get_asset_info, asset_id=asset_id)
 
     def get_block(self, *, height: int = 1) -> Any:
         assert height > 0

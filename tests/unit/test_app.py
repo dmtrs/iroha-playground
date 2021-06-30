@@ -1,10 +1,15 @@
+import asyncio
+import pytest
+from asyncmock import AsyncMock
+
 from punq import Container
 
-from playground.iroha import IrohaClient, IrohaException
+from playground.iroha import IrohaClient, IrohaException, IrohaAccount
 
 
 class TestApp:
-    def test_mutation_create_asset(self, container: Container) -> None:
+    @pytest.mark.asyncio
+    async def test_mutation_create_asset(self, container: Container) -> None:
         from playground.app import schema
 
         container.resolve(IrohaClient).create_asset.return_value = (
@@ -30,7 +35,7 @@ class TestApp:
                 "precision": 0,
             }
         }
-        result = schema.execute_sync(mutation, variable_values=variables)
+        result = await schema.execute(mutation, variable_values=variables)
 
         expected = {
             "createAsset": {
@@ -41,12 +46,13 @@ class TestApp:
         assert not result.errors
         assert result.data == expected
 
-    def test_mutation_create_asset_exception(self, container: Container) -> None:
+    @pytest.mark.asyncio
+    async def test_mutation_create_asset_exception(self, container: Container) -> None:
         from playground.app import schema
 
-        container.resolve(IrohaClient).create_asset.side_effect = IrohaException(
+        container.resolve(IrohaClient).create_asset = AsyncMock(side_effect = IrohaException(
             message="mock"
-        )
+        ))
 
         mutation = """
         mutation createAsset($inputAsset:IAsset!) {
@@ -64,17 +70,17 @@ class TestApp:
                 "precision": 0,
             }
         }
-        result = schema.execute_sync(mutation, variable_values=variables)
+        result = await schema.execute(mutation, variable_values=variables)
 
         assert result.errors
 
-    def test_query_asset_ok(self, container: Container) -> None:
+    @pytest.mark.asyncio
+    async def test_query_asset_ok(self, container: Container) -> None:
         from playground.app import schema
-
-        container.resolve(IrohaClient).get_asset_info.return_value = (
+        container.resolve(IrohaClient).get_asset_info = AsyncMock(return_value=(
             "coin#test",
             0,
-        )
+        ))
 
         query = """
         query asset {
@@ -97,12 +103,13 @@ class TestApp:
                 "precision": 0,
             }
         }
-        result = schema.execute_sync(query)
+        result = await schema.execute(query)
 
         assert not result.errors
         assert result.data == expected
 
-    def test_query_asset_exception(self, container: Container) -> None:
+    @pytest.mark.asyncio
+    async def test_query_asset_exception(self, container: Container) -> None:
         from playground.app import schema
 
         container.resolve(IrohaClient).get_asset_info.side_effect = IrohaException(
@@ -117,11 +124,12 @@ class TestApp:
         }
         """
 
-        result = schema.execute_sync(query)
+        result = await schema.execute(query)
 
         assert result.errors
 
-    def test_query_asset(self, container: Container) -> None:
+    @pytest.mark.asyncio
+    async def test_query_asset(self, container: Container) -> None:
         from playground.app import schema
 
         container.resolve(IrohaClient).get_transactions.return_value = [
@@ -165,12 +173,13 @@ class TestApp:
             ]
         }
 
-        result = schema.execute_sync(query)
+        result = await schema.execute(query)
 
         assert not result.errors
         assert result.data == expected
 
-    def test_query_transaction_exception(self, container: Container) -> None:
+    @pytest.mark.asyncio
+    async def test_query_transaction_exception(self, container: Container) -> None:
         from playground.app import schema
 
         container.resolve(IrohaClient).get_transactions.side_effect = IrohaException(
@@ -185,6 +194,6 @@ class TestApp:
         }
         """
 
-        result = schema.execute_sync(query)
+        result = await schema.execute(query)
 
         assert result.errors

@@ -1,12 +1,16 @@
+import asyncio
+import pytest
 from unittest.mock import Mock
 
 from punq import Container
 
+from playground.concurrency import Runner
 from playground.iroha import IrohaAccount, IrohaClient, IrohaGrpc
 
 
 class TestIrohaClient:
-    def test_get_asset_info(self, container: Container) -> None:
+    @pytest.mark.asyncio
+    async def test_get_asset_info( self, container: Container) -> None:
         mock_net = container.resolve(IrohaGrpc)
         mock_net.send_query.return_value = Mock(
             HasField=lambda *_: False,
@@ -17,9 +21,10 @@ class TestIrohaClient:
         )
 
         account = container.resolve(IrohaAccount)
-        client = IrohaClient(account=account, net=mock_net)
+        run = container.resolve(Runner)
+        client = IrohaClient(account=account, net=mock_net, run=run)
 
-        (asset_id, precision,) = client.get_asset_info(
+        (asset_id, precision,) = await client.get_asset_info(
             asset_id="foo#bar",
         )
         assert asset_id == "foo#bar"
@@ -31,7 +36,8 @@ class TestIrohaClient:
         mock_net.tx_status_stream.return_value = [("COMMITTED",)]
 
         account = container.resolve(IrohaAccount)
-        client = IrohaClient(account=account, net=mock_net)
+        run = container.resolve(Runner)
+        client = IrohaClient(account=account, net=mock_net, run=run)
 
         (hex_hash, status, creator_account_id, commands,) = client.create_asset(
             asset_name="foo",

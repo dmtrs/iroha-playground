@@ -1,6 +1,7 @@
 from unittest.mock import Mock, create_autospec, patch
 
 import pytest
+import asyncio
 from punq import Container
 
 
@@ -12,39 +13,38 @@ def genesis_block() -> str:
     return data
 
 
-@pytest.fixture(scope="session", autouse=True)
-def container() -> Container:
+@pytest.fixture(scope="function", autouse=True)
+def container(event_loop: asyncio.AbstractEventLoop) -> Container:
+    from playground.concurrency import Runner
     from playground.iroha import IrohaAccount, IrohaClient, IrohaGrpc
 
     mock_container = Container()
+    mock_container.register(asyncio.AbstractEventLoop, instance=event_loop)
+    mock_container.register(Runner)
 
-    mock_account = IrohaAccount(
+    mock_container.register(IrohaAccount, instance=IrohaAccount(
         id="admin@test",
         private_key="4148a3308e04975baa77ad2b5f4ac70f250506cf6cf388d3963ade2c68e5b2ad",
-    )
-
-    mock_container.register(IrohaAccount, instance=mock_account)
+    ))
 
     MockIrohaGrpc = create_autospec(IrohaGrpc)
-
-    mock_iroha_grpc = MockIrohaGrpc()
     # due to mock interferring the container __init__ signature read from punq
     # we set an explicit instance
     mock_container.register(
         IrohaGrpc,
         MockIrohaGrpc,
-        instance=mock_iroha_grpc,
     )
 
     MockIrohaClient = create_autospec(IrohaClient)
-
-    mock_iroha_client = MockIrohaClient(account=mock_account, net=mock_iroha_grpc)
     # due to mock interferring the container __init__ signature read from punq
     # we set an explicit instance
     mock_container.register(
         IrohaClient,
-        MockIrohaClient,
-        instance=mock_iroha_client,
+        instance=MockIrohaClient(
+            account=mock_container.resolve(IrohaAccount),
+            net=mock_container.resolve(IrohaGrpc),
+            run=mock_container.resolve(Runner),
+        ),
     )
 
     import playground
