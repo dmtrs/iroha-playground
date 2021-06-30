@@ -1,8 +1,15 @@
-from unittest.mock import Mock, ANY
+from unittest.mock import ANY, Mock
 
 from punq import Container
 
-from playground.domain import URI, Asset, IAsset, IDomain, Transaction, TransactionStatus
+from playground.domain import (
+    URI,
+    Asset,
+    IAsset,
+    IDomain,
+    Transaction,
+    TransactionStatus,
+)
 from playground.iroha import IrohaAccount, IrohaClient, IrohaGrpc
 
 
@@ -20,7 +27,7 @@ class TestIrohaClient:
         account = container.resolve(IrohaAccount)
         client = IrohaClient(account=account, net=mock_net)
 
-        assert Asset(uri=URI('foo#bar'), precision=1) == client.get_asset(
+        assert Asset(uri=URI("foo#bar"), precision=1) == client.get_asset(
             uri=URI("foo#bar"),
         )
 

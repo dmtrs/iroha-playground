@@ -4,8 +4,8 @@ import strawberry
 
 from playground import container
 from playground.domain import URI, Asset, IAsset, Transaction
-
 from playground.iroha import IrohaClient
+
 
 @strawberry.type
 class Query:

@@ -1,11 +1,10 @@
 import binascii
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Optional, Tuple
+from typing import Any, Iterable, List, Optional
 
 from iroha import Iroha as Iroha
 from iroha import IrohaCrypto as IrohaCrypto
 from iroha import IrohaGrpc as IrohaGrpc
-
 from playground.domain import URI, Asset, IAsset, Transaction, TransactionStatus
 
 
@@ -76,7 +75,9 @@ class IrohaClient:
             yield Transaction(
                 uri=URI(hex_hash.decode("utf-8")),
                 status=TransactionStatus(str(status)),
-                creator_account_uri=URI(str(tx.payload.reduced_payload.creator_account_id)),
+                creator_account_uri=URI(
+                    str(tx.payload.reduced_payload.creator_account_id)
+                ),
                 commands=str(tx.payload.reduced_payload.commands),
             )
 

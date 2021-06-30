@@ -125,12 +125,14 @@ class TestApp:
     def test_query_asset(self, container: Container) -> None:
         from playground.app import schema
 
-        container.resolve(IrohaClient).get_transactions.return_value = [ Transaction(
-            uri=URI("foo"),
-            status=TransactionStatus("REJECTED"),
-            creator_account_uri=URI("bar@test"),
-            commands="commands",
-        ) ]
+        container.resolve(IrohaClient).get_transactions.return_value = [
+            Transaction(
+                uri=URI("foo"),
+                status=TransactionStatus("REJECTED"),
+                creator_account_uri=URI("bar@test"),
+                commands="commands",
+            )
+        ]
 
         query = """
         query transactions {
