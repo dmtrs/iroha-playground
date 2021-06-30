@@ -1,10 +1,11 @@
 import binascii
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Optional, Tuple
+from typing import Any, Iterable, List, Optional
 
 from iroha import Iroha as Iroha
 from iroha import IrohaCrypto as IrohaCrypto
 from iroha import IrohaGrpc as IrohaGrpc
+from playground.domain import URI, Asset, IAsset, Transaction, TransactionStatus
 
 
 @dataclass
@@ -34,64 +35,60 @@ class IrohaException(Exception):
 class IrohaClient:
     _net: IrohaGrpc
     _account: IrohaAccount
+    _Crypto: IrohaCrypto
 
     def __init__(self, account: IrohaAccount, net: IrohaGrpc):
         self._net = net
         self._account = account
+        self._Crypto = IrohaCrypto
 
-    def create_asset(
-        self, *, asset_name: str, domain_id: str, precision: int
-    ) -> Tuple[str, str, str, str]:
+    def create_asset(self, *, input_asset: IAsset) -> Transaction:
         tx = self._account.client.transaction(
             [
                 self._account.client.command(
                     "CreateAsset",
-                    asset_name=asset_name,
-                    domain_id=domain_id,
-                    precision=precision,
+                    asset_name=input_asset.id,
+                    domain_id=input_asset.domain.uri,
+                    precision=input_asset.precision,
                 )
             ]
         )
-        IrohaCrypto.sign_transaction(tx, self._account.private_key)
+        self._Crypto.sign_transaction(tx, self._account.private_key)
 
-        hex_hash = binascii.hexlify(IrohaCrypto.hash(tx))
+        hex_hash = binascii.hexlify(self._Crypto.hash(tx))
         self._net.send_tx(tx)
         for s in self._net.tx_status_stream(tx, timeout=1):
             (status, *_) = s
             continue
-        return (
-            hex_hash.decode("utf-8"),
-            str(status),
-            str(tx.payload.reduced_payload.creator_account_id),
-            str(tx.payload.reduced_payload.commands),
+        return Transaction(
+            uri=URI(hex_hash.decode("utf-8")),
+            status=TransactionStatus(str(status)),
+            creator_account_uri=URI(str(tx.payload.reduced_payload.creator_account_id)),
+            commands=str(tx.payload.reduced_payload.commands),
         )
 
-    def get_transactions(
-        self, *, tx_hashes: List[str], status: bool = True
-    ) -> Iterable[Tuple[str, str, str, str]]:
+    def get_transactions(self, *, uris: List[URI]) -> Iterable[Transaction]:
         response = self._send_query(
-            "GetTransactions", tx_hashes=[bytes(tx, "utf-8") for tx in tx_hashes]
+            "GetTransactions", tx_hashes=[bytes(uri, "utf-8") for uri in uris]
         )
-
         for tx in response.transactions_response.transactions:
             (status, *_) = self._net.tx_status(tx)  # should async
-            hex_hash = binascii.hexlify(IrohaCrypto.hash(tx))
-            yield (
-                hex_hash.decode("utf-8"),
-                str(status),
-                tx.payload.reduced_payload.creator_account_id,
-                str(tx.payload.reduced_payload.commands),
+            hex_hash = binascii.hexlify(self._Crypto.hash(tx))
+            yield Transaction(
+                uri=URI(hex_hash.decode("utf-8")),
+                status=TransactionStatus(str(status)),
+                creator_account_uri=URI(
+                    str(tx.payload.reduced_payload.creator_account_id)
+                ),
+                commands=str(tx.payload.reduced_payload.commands),
             )
 
-    def get_asset_info(self, *, asset_id: str) -> Tuple[str, int]:
-        def _get_asset_info(*, asset_id: str) -> Tuple[str, int]:
-            response = self._send_query("GetAssetInfo", asset_id=asset_id)
-            return (
-                str(response.asset_response.asset_id),
-                int(response.asset_response.precision),
-            )
-
-        return _get_asset_info(asset_id=asset_id)
+    def get_asset(self, *, uri: URI) -> Asset:
+        response = self._send_query("GetAssetInfo", asset_id=uri)
+        return Asset(
+            uri=URI(str(response.asset_response.asset_id)),
+            precision=int(response.asset_response.precision),
+        )
 
     def get_block(self, *, height: int = 1) -> Any:
         assert height > 0
@@ -100,7 +97,7 @@ class IrohaClient:
 
     def _send_query(self, name: str, **kwargs: Any) -> Any:
         query = self._account.client.query(name, **kwargs)
-        IrohaCrypto.sign_query(query, self._account.private_key)
+        self._Crypto.sign_query(query, self._account.private_key)
 
         response = self._net.send_query(query)
         if response.HasField("error_response"):

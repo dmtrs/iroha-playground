@@ -17,7 +17,7 @@ class TransactionStatus(enum.Enum):
 
 @strawberry.input
 class IDomain:
-    id: strawberry.ID
+    uri: URI
 
 
 @strawberry.input
@@ -29,12 +29,7 @@ class IAsset:
 
 @strawberry.type
 class Domain:
-    id: strawberry.ID
-
-
-class DomainResolver:
-    def __call__(self, id: str) -> Domain:
-        return Domain(id=strawberry.ID(id))
+    uri: URI
 
 
 @strawberry.type
@@ -50,7 +45,7 @@ class Asset:
     @strawberry.field
     def domain(self) -> Domain:
         *_, domain_id = self.uri.split("#")
-        return DomainResolver()(id=domain_id)
+        return Domain(uri=URI(domain_id))
 
 
 @strawberry.type
@@ -65,7 +60,7 @@ class Account:
     @strawberry.field
     def domain(self) -> Domain:
         *_, domain_id = self.uri.split("@")
-        return DomainResolver()(id=domain_id)
+        return Domain(uri=URI(domain_id))
 
 
 class AccountResolver:
@@ -79,7 +74,7 @@ class Transaction:
     status: TransactionStatus
     commands: str
 
-    creator_account_uri: strawberry.Private[str]
+    creator_account_uri: strawberry.Private[URI]
 
     @strawberry.field
     def creator(self) -> Account:
