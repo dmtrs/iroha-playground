@@ -1,11 +1,11 @@
-import { html } from 'lit-html';
+import { html, directive } from 'lit-html';
 import { styleMap } from 'lit-html/directives/style-map';
-import './button.css';
+
+import 'carbon-web-components/es/components/link/link.js';
 
 export interface DomainProps {
   /**
-   * Is this the principal call to action on the page?
-   */
+   * Is this the principal call to action on the page?  */
   primary?: boolean;
   /**
    * What background color to use
@@ -28,16 +28,11 @@ export interface DomainProps {
  * Primary UI component for user interaction
  */
 export const Domain = ({ primary, backgroundColor = null, size, uri, onClick }: ButtonProps) => {
-  const mode = primary ? 'storybook-button--primary' : 'storybook-button--secondary';
-
   return html`
-    <button
-      type="button"
-      class=${['storybook-button', `storybook-button--${size || 'medium'}`, mode].join(' ')}
-      style=${styleMap({ backgroundColor })}
-      @click=${onClick}
+    <bx-link
+      href=${uri}
     >
       ${uri}
-    </button>
+    </bx-link>
   `;
 };
