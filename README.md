@@ -1,7 +1,10 @@
-<h1 align="center">
-    <strong>Iroha<img height="24px;" src="logo.svg" alt="Iroha Playground" /> Playground</strong>
+<h1>
+    <img height="24px;" src="https://wiki.hyperledger.org/download/attachments/2392245/iroha?version=1&modificationDate=1543516459000&api=v2" alt="Iroha"
+    <strong><img height="24px;" src="logo.svg" alt="Playground" /> Playground</strong>
 </h1>
-<p align="center">
+<p>Playground for Hyplerdger Iroha.</p>
+
+<p>
     <a href="https://github.com/dmtrs/iroha-playground" target="_blank">
         <img src="https://img.shields.io/github/last-commit/dmtrs/iroha-playground" alt="Latest Commit">
     </a>
@@ -11,22 +14,22 @@
     <img src="https://img.shields.io/github/license/dmtrs/iroha-playground">
 </p>
 
-Hyperldeger Iroha test network setup as a Playground. 
-See: [hyperledger/iroha](https://github.com/hyperledger/iroha)
 
 ## Intro to Hyperledger Iroha
 
 > Hyperledger Iroha is a simple blockchain platform you can use to make trusted, secure, and fast applications by bringing the power of permission-based blockchain with Crash fault-tolerant consensus. It’s free, open-source, and works on Linux and Mac OS, with a variety of mobile and desktop libraries. 
 
+See more: [hyperledger/iroha](https://github.com/hyperledger/iroha)
+
 ## Playground
 
-Playground's enables interaction with Hyperledget Iroha v1 API through a GraphQL interface. Domain graph introduced is enhancing current API and enables web components to visually communicate state of the blockchain.
+Playground enables interaction with Hyperledget Iroha v1 API through a GraphQL interface. Domain graph introduced is enhancing current API and enables web components to visually communicate state of the blockchain.
 
 ### Technologies
 
 <img width="480px" src="project_technologies.png" alt="Apollo Web Client, Apollo Elements, Lit, Carbon Design System, Storybook, Strawbeery GraphQL, Starlette, Hyperledger Iroha" style="max-width:40%;">
 
-**Development resources**
+## Development resources
 - [Apollo Web Component Libraries: LitElement](https://apolloelements.dev/api/libraries/lit-apollo/)
 - Carbon Design System
   - [Web Components Framework](https://www.carbondesignsystem.com/developing/frameworks/web-components)
@@ -40,7 +43,7 @@ Playground's enables interaction with Hyperledget Iroha v1 API through a GraphQL
   - [API Reference](https://iroha.readthedocs.io/en/main/develop/api.html)
   - [Python Client examples](https://github.com/hyperledger/iroha-python/tree/master/examples)
 
-## Bootstrap
+### Bootstrap
 
 ```
 docker-compose up --detach
@@ -48,7 +51,7 @@ docker-compose up --detach
 
 Graphql server under: `http://localhost:8000`
 
-## Local image
+### Local image
 
 ```
 docker build -t iroha-playground
@@ -56,5 +59,5 @@ docker run -v $(pwd):/usr/src/app --rm -ti iroha-playground poetry run python ke
 docker run -v $(pwd):/usr/src/app --rm -ti iroha-playground poetry run ptw -- --mypy playground --cov=playground --cov-report=term-missing:skip-covered --cov-report=xml tests/unit
 ```
 
-### Misc
+## Misc
 - [iconset](https://www.iconfinder.com/iconsets/kid-playground-and-toys)
