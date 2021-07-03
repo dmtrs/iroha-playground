@@ -14,6 +14,8 @@
     <img src="https://img.shields.io/github/license/dmtrs/iroha-playground">
 </p>
 
+**- 3 July 2021, 📰 News:** Prepare [backlog](https://github.com/dmtrs/iroha-playground/issues) and groom with requirements for a [MVP](https://github.com/dmtrs/iroha-playground/milestones) milestone.
+
 
 ## Intro to Hyperledger Iroha
 
