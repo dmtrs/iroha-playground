@@ -14,6 +14,10 @@
 Hyperldeger Iroha test network setup as a Playground. 
 See: [hyperledger/iroha](https://github.com/hyperledger/iroha)
 
+## Intro to Hyperledger Iroha
+
+> Hyperledger Iroha is a simple blockchain platform you can use to make trusted, secure, and fast applications by bringing the power of permission-based blockchain with Crash fault-tolerant consensus. It’s free, open-source, and works on Linux and Mac OS, with a variety of mobile and desktop libraries. 
+
 ## Bootstrap
 
 ```
