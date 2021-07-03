@@ -24,7 +24,7 @@ Playground's enables interaction with Hyperledget Iroha v1 API through a GraphQL
 
 ### Technologies
 
-![Apollo Web Client, Apollo Elements, Lit, Carbon Design System, Storybook, Strawbeery GraphQL, Starlette, Hyperledger Iroha](project_technologies.png)
+<img src="project_technologies.png" alt="Apollo Web Client, Apollo Elements, Lit, Carbon Design System, Storybook, Strawbeery GraphQL, Starlette, Hyperledger Iroha" style="max-width:40%;/*! align-content: center; */margin: 0 auto;">
 
 ## Bootstrap
 
