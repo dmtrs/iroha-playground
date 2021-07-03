@@ -31,7 +31,7 @@ Playground's enables interaction with Hyperledget Iroha v1 API through a GraphQL
 - [Apollo Web Component Libraries: LitElement](https://apolloelements.dev/api/libraries/lit-apollo/)
 - Carbon Design System
   - [Web Components Framework](https://www.carbondesignsystem.com/developing/frameworks/web-components)
-  - [List of available Compoennets](https://web-components.carbondesignsystem.com/?path=/story/introduction-welcome--page)
+  - [List of available components](https://web-components.carbondesignsystem.com/?path=/story/introduction-welcome--page)
 - [Storybookjs documentation](https://storybook.js.org/docs/react/get-started/introduction)
 
 - [Strawberry GraphQL documentation](https://strawberry.rocks/docs)
