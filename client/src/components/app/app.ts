@@ -17,11 +17,12 @@ export class ApolloApp extends ApolloQuery<Data, Variables> {
 
   query = AppQuery;
 
+
   render(): TemplateResult {
     return html`
       <dl>
         <dt>Pathname</dt>
-        <dd>${this.data?.location?.pathname ?? '/'}</dd>
+        <dd>${this.data?.asset?.uri ?? '/'}</dd>
       </dl>
     `;
   }

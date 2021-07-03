@@ -4,6 +4,7 @@ import html from '@open-wc/rollup-plugin-html';
 import graphql from '@apollo-elements/rollup-plugin-graphql';
 import litcss from 'rollup-plugin-lit-css';
 import esbuild from 'rollup-plugin-esbuild';
+import injectProcessEnv from 'rollup-plugin-inject-process-env';
 
 export default {
   input: 'index.html',
@@ -21,5 +22,8 @@ export default {
     commonjs(),
     graphql(),
     litcss(),
+    injectProcessEnv({
+      NODE_ENV: 'production',
+    }),
   ],
 };

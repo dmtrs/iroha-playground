@@ -10,7 +10,7 @@ from playground.iroha import IrohaClient
 @strawberry.type
 class Query:
     @strawberry.field
-    def asset(self, uri: URI) -> Asset:
+    def asset(self, uri: URI = URI("foo#test")) -> Asset:
         client: IrohaClient = container.resolve(IrohaClient)
         return client.get_asset(uri=uri)
 
