@@ -24,7 +24,21 @@ Playground's enables interaction with Hyperledget Iroha v1 API through a GraphQL
 
 ### Technologies
 
-<img src="project_technologies.png" alt="Apollo Web Client, Apollo Elements, Lit, Carbon Design System, Storybook, Strawbeery GraphQL, Starlette, Hyperledger Iroha" style="max-width:40%;/*! align-content: center; */margin: 0 auto;">
+<img src="project_technologies.png" alt="Apollo Web Client, Apollo Elements, Lit, Carbon Design System, Storybook, Strawbeery GraphQL, Starlette, Hyperledger Iroha" style="max-width:40%;">
+
+**Development resources**
+- [Apollo Web Component Libraries: LitElement](https://apolloelements.dev/api/libraries/lit-apollo/)
+- Carbon Design System
+  - [Web Components Framework](https://www.carbondesignsystem.com/developing/frameworks/web-components)
+  - [List of available Compoennets](https://web-components.carbondesignsystem.com/?path=/story/introduction-welcome--page)
+- [Storybookjs documentation](https://storybook.js.org/docs/react/get-started/introduction)
+
+- [Strawberry GraphQL documentation](https://strawberry.rocks/docs)
+- Hyperledger Iroha
+  - [What is inside Iroha?](https://iroha.readthedocs.io/en/main/concepts_architecture/architecture.html)
+  - [Core concepts](https://iroha.readthedocs.io/en/main/concepts_architecture/core_concepts.html)
+  - [API Reference](https://iroha.readthedocs.io/en/main/develop/api.html)
+  - [Python Client examples](https://github.com/hyperledger/iroha-python/tree/master/examples)
 
 ## Bootstrap
 
