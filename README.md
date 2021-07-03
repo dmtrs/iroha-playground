@@ -18,6 +18,28 @@ See: [hyperledger/iroha](https://github.com/hyperledger/iroha)
 
 > Hyperledger Iroha is a simple blockchain platform you can use to make trusted, secure, and fast applications by bringing the power of permission-based blockchain with Crash fault-tolerant consensus. It’s free, open-source, and works on Linux and Mac OS, with a variety of mobile and desktop libraries. 
 
+## Playground
+
+Playground's enables interaction with Hyperledget Iroha v1 API through a GraphQL interface. Domain graph introduced is enhancing current API and enables web components to visually communicate state of the blockchain.
+
+### Technologies
+
+<img src="project_technologies.png" alt="Apollo Web Client, Apollo Elements, Lit, Carbon Design System, Storybook, Strawbeery GraphQL, Starlette, Hyperledger Iroha" style="max-width:40%;">
+
+**Development resources**
+- [Apollo Web Component Libraries: LitElement](https://apolloelements.dev/api/libraries/lit-apollo/)
+- Carbon Design System
+  - [Web Components Framework](https://www.carbondesignsystem.com/developing/frameworks/web-components)
+  - [List of available Compoennets](https://web-components.carbondesignsystem.com/?path=/story/introduction-welcome--page)
+- [Storybookjs documentation](https://storybook.js.org/docs/react/get-started/introduction)
+
+- [Strawberry GraphQL documentation](https://strawberry.rocks/docs)
+- Hyperledger Iroha
+  - [What is inside Iroha?](https://iroha.readthedocs.io/en/main/concepts_architecture/architecture.html)
+  - [Core concepts](https://iroha.readthedocs.io/en/main/concepts_architecture/core_concepts.html)
+  - [API Reference](https://iroha.readthedocs.io/en/main/develop/api.html)
+  - [Python Client examples](https://github.com/hyperledger/iroha-python/tree/master/examples)
+
 ## Bootstrap
 
 ```
