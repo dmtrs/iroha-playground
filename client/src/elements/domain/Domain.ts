@@ -1,8 +1,6 @@
 import { html } from 'lit-html';
 import { styleMap } from 'lit-html/directives/style-map';
-import './button.css';
-
-import 'carbon-web-components/es/components/tile/tile.js'
+// import './button.css';
 
 export interface DomainProps {
   /**
@@ -29,7 +27,7 @@ export interface DomainProps {
 /**
  * Primary UI component for user interaction
  */
-export const Domain = ({ primary, backgroundColor = null, size, uri, onClick }: ButtonProps) => {
+export const Domain = ({ primary, backgroundColor = null, size, uri, onClick }: DomainProps) => {
   const mode = primary ? 'storybook-button--primary' : 'storybook-button--secondary';
 
   return html`

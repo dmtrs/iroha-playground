@@ -1,3 +1,4 @@
+import alias from '@rollup/plugin-alias';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import html from '@open-wc/rollup-plugin-html';
@@ -16,9 +17,14 @@ export default {
   },
 
   plugins: [
+    alias({
+      entries: [
+        { find: 'elements', replacement: 'src/elements/index.js' },
+      ],
+    }),
+    resolve(),
     esbuild({ ts: true, target: 'es2019', minify: true }),
     html(),
-    resolve(),
     commonjs(),
     graphql(),
     litcss(),
