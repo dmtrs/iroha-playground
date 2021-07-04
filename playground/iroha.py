@@ -86,8 +86,8 @@ class IrohaClient:
     def get_asset(self, *, uri: URI) -> Asset:
         response = self._send_query("GetAssetInfo", asset_id=uri)
         return Asset(
-            uri=URI(str(response.asset_response.asset_id)),
-            precision=int(response.asset_response.precision),
+            uri=URI(str(response.asset_response.asset.asset_id)),
+            precision=int(response.asset_response.asset.precision),
         )
 
     def get_block(self, *, height: int = 1) -> Any:

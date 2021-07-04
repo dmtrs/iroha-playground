@@ -19,8 +19,7 @@ class TestIrohaClient:
         mock_net.send_query.return_value = Mock(
             HasField=lambda *_: False,
             asset_response=Mock(
-                asset_id="foo#bar",
-                precision=1,
+                asset=Mock(asset_id="foo#bar", precision=1),
             ),
         )
 

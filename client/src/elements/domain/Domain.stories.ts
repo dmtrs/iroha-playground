@@ -1,5 +1,5 @@
 import { Story, Meta } from '@storybook/web-components';
-import { Domain, DomainProps } from './Domain';
+import { Domain, DomainProps } from './';
 
 export default {
   title: 'Playground/Domain',
