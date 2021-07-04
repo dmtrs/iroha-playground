@@ -1,3 +1,4 @@
+import path from 'path';
 import { esbuildPlugin } from '@web/dev-server-esbuild';
 import { fromRollup } from '@web/dev-server-rollup';
 
@@ -13,6 +14,7 @@ const graphql = fromRollup(_graphql);
 const replace = fromRollup(_replace);
 const alias = fromRollup(_alias);
 
+
 export default {
   nodeResolve: true,
   port: 8004,
@@ -27,7 +29,7 @@ export default {
   plugins: [
     alias({
       entries: [
-        { find: 'elements', replacement: 'src/elements/index.js' },
+        { find: 'elements', replacement: path.resolve('src/elements/index.js') },
       ],
     }),
     esbuildPlugin({ ts: true }),
